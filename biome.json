@@ -15,10 +15,24 @@
 		"indentWidth": 2,
 		"lineWidth": 100
 	},
+  "javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"semicolons": "asNeeded",
+			"trailingCommas": "all",
+			"indentWidth": 2
+		},
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+	},
+  "json": {},
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
+      "complexity": {},
+			"correctness": {},
       "suspicious": {
         "noUnknownAtRules": "off"
       },
@@ -28,10 +42,12 @@
 					"fix": "safe",
 					"options": {
 						"attributes": ["className"],
-						"functions": ["cn"]
+						"functions": ["cn", "clsx", "cva"]
 					}
 				}
-			}
+			},
+      "performance": {},
+			"security": {}
     },
     "domains": {
       "next": "recommended",
