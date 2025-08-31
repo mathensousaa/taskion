@@ -1,10 +1,13 @@
 import { inject, injectable } from 'tsyringe'
+import { en } from 'zod/v4/locales'
 import { UnauthorizedError } from '@/backend/common/errors/unauthorized-error'
+import type { PaginatedApiResponse } from '@/backend/common/types'
+import type { PaginationQuery } from '@/backend/common/validation/common.schema'
+import { TaskEnhancerService } from '@/backend/task-enhancer/services/task-enhancer.service'
 import { TaskStatusService } from '@/backend/task-status/services/task-status.service'
 import type { ITaskRepository } from '@/backend/tasks/repository/task.repository'
 import {
-	type PaginatedTasksResponse,
-	type PaginationQuery,
+	type Task,
 	type TaskCreationInput,
 	TaskDbInsertSchema,
 	type TasksReorderInput,
@@ -17,6 +20,7 @@ export class TaskService {
 	constructor(
 		@inject(TaskStatusService) private readonly taskStatusService: TaskStatusService,
 		@inject('ITaskRepository') private readonly taskRepository: ITaskRepository,
+		@inject(TaskEnhancerService) private readonly taskEnhancerService: TaskEnhancerService,
 	) {}
 
 	async createTask(input: TaskCreationInput, authenticatedUser: User) {
@@ -37,7 +41,9 @@ export class TaskService {
 		})
 		const task = await this.taskRepository.create(dbInput)
 
-		return task
+		const enhancedTask = await this.taskEnhancerService.enhanceTask(task)
+
+		return enhancedTask
 	}
 
 	async getAllTasks(authenticatedUser: User) {
@@ -48,7 +54,7 @@ export class TaskService {
 	async getTasksPaginated(
 		authenticatedUser: User,
 		pagination: PaginationQuery,
-	): Promise<PaginatedTasksResponse> {
+	): Promise<PaginatedApiResponse<Task>> {
 		// Only return tasks belonging to the authenticated user with pagination
 		return await this.taskRepository.findAllByUserIdPaginated(authenticatedUser.id, pagination)
 	}

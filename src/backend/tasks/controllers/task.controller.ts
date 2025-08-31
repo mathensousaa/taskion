@@ -1,27 +1,30 @@
 import { NextResponse } from 'next/server'
 import { inject, injectable } from 'tsyringe'
-import { AuthenticatedUser } from '@/backend/common/decorators'
+import { IsAuthenticated } from '@/backend/common/decorators'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
+import { PaginationQuerySchema, validateIdParam } from '@/backend/common/validation/common.schema'
+import { TaskEnhancerService } from '@/backend/task-enhancer/services/task-enhancer.service'
 import { TaskService } from '@/backend/tasks/services/task.service'
 import {
-	PaginationQuerySchema,
 	TaskCreationSchema,
 	TasksReorderSchema,
 	TaskUpdateSchema,
 } from '@/backend/tasks/validation/task.creation.schema'
-import type { User } from '@/backend/users/validation/user.schema'
 
 @injectable()
 export class TaskController {
-	constructor(@inject(TaskService) private readonly service: TaskService) {}
+	constructor(
+		@inject(TaskService) private readonly service: TaskService,
+		@inject(TaskEnhancerService) private readonly taskEnhancerService: TaskEnhancerService,
+	) {}
 
-	@AuthenticatedUser()
-	async create(authenticatedUser: User, req: Request) {
+	@IsAuthenticated()
+	async create(req: Request) {
 		try {
 			const body = await req.json()
 			const data = TaskCreationSchema.parse(body)
 
-			const task = await this.service.createTask(data, authenticatedUser)
+			const task = await this.service.createTask(data, req.user!)
 
 			return NextResponse.json(
 				{ success: true, message: 'Task successfully created', data: task },
@@ -32,8 +35,8 @@ export class TaskController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async getAll(authenticatedUser: User, req: Request) {
+	@IsAuthenticated()
+	async getAll(req: Request) {
 		try {
 			// Parse query parameters for pagination
 			const url = new URL(req.url)
@@ -44,13 +47,13 @@ export class TaskController {
 					: undefined,
 			})
 
-			const result = await this.service.getTasksPaginated(authenticatedUser, pagination)
+			const result = await this.service.getTasksPaginated(req.user!, pagination)
 
 			return NextResponse.json(
 				{
+					...result,
 					success: true,
 					message: 'Tasks retrieved successfully',
-					...result,
 				},
 				{ status: 200 },
 			)
@@ -59,10 +62,12 @@ export class TaskController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async getById(authenticatedUser: User, id: string) {
+	@IsAuthenticated()
+	async getById(req: Request, id: string) {
 		try {
-			const task = await this.service.getTaskById(id, authenticatedUser)
+			const validatedId = validateIdParam(id)
+
+			const task = await this.service.getTaskById(validatedId, req.user!)
 
 			if (!task) {
 				return NextResponse.json({ success: false, message: 'Task not found' }, { status: 404 })
@@ -77,13 +82,15 @@ export class TaskController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async update(authenticatedUser: User, id: string, req: Request) {
+	@IsAuthenticated({ allowApiKey: true })
+	async update(req: Request, id: string) {
 		try {
+			const validatedId = validateIdParam(id)
+
 			const body = await req.json()
 			const data = TaskUpdateSchema.parse(body)
 
-			const task = await this.service.updateTask(id, data, authenticatedUser)
+			const task = await this.service.updateTask(validatedId, data, req.user!)
 
 			return NextResponse.json(
 				{ success: true, message: 'Task successfully updated', data: task },
@@ -94,10 +101,12 @@ export class TaskController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async delete(authenticatedUser: User, id: string) {
+	@IsAuthenticated()
+	async delete(req: Request, id: string) {
 		try {
-			await this.service.deleteTask(id, authenticatedUser)
+			const validatedId = validateIdParam(id)
+
+			await this.service.deleteTask(validatedId, req.user!)
 
 			return NextResponse.json(
 				{ success: true, message: 'Task successfully deleted' },
@@ -108,13 +117,13 @@ export class TaskController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async reorder(authenticatedUser: User, req: Request) {
+	@IsAuthenticated()
+	async reorder(req: Request) {
 		try {
 			const body = await req.json()
 			const data = TasksReorderSchema.parse(body)
 
-			const tasks = await this.service.reorderTasks(authenticatedUser, data)
+			const tasks = await this.service.reorderTasks(req.user!, data)
 
 			return NextResponse.json(
 				{
@@ -126,6 +135,32 @@ export class TaskController {
 			)
 		} catch (error) {
 			return ErrorHandler.handle(error, 'TaskController.reorder')
+		}
+	}
+
+	@IsAuthenticated({ allowApiKey: true })
+	async enhance(req: Request, id: string) {
+		try {
+			const validatedId = validateIdParam(id)
+
+			const task = await this.service.getTaskById(validatedId, req.user!)
+
+			if (!task) {
+				return NextResponse.json({ success: false, message: 'Task not found' }, { status: 404 })
+			}
+
+			const enhancedTask = await this.taskEnhancerService.enhanceTask(task)
+
+			return NextResponse.json(
+				{
+					success: true,
+					message: 'Task description successfully enhanced',
+					data: enhancedTask,
+				},
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TaskController.enhance')
 		}
 	}
 }

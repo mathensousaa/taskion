@@ -5,13 +5,13 @@ import {
 	UserSchema,
 	type UserUpdateInput,
 } from '@/backend/users/validation/user.schema'
-import { apiRequest, BASE_URL } from '@/lib/api-client'
+import { apiClient } from '@/configs/fetch-clients'
 
 export const usersService = {
 	// List users - use force-cache for semi-static data
 	async list() {
-		return apiRequest<User[]>(
-			`${BASE_URL}/users`,
+		return apiClient.request<User[]>(
+			'/users',
 			{
 				cache: 'force-cache',
 			},
@@ -21,8 +21,8 @@ export const usersService = {
 
 	// Get user by ID - use force-cache for individual users
 	async getById(id: string) {
-		return apiRequest<User>(
-			`${BASE_URL}/users/${id}`,
+		return apiClient.request<User>(
+			`/users/${id}`,
 			{
 				cache: 'force-cache',
 			},
@@ -32,8 +32,8 @@ export const usersService = {
 
 	// Create new user - no cache for mutable operations
 	async create(data: UserCreationInput) {
-		return apiRequest<User>(
-			`${BASE_URL}/users`,
+		return apiClient.request<User>(
+			'/users',
 			{
 				method: 'POST',
 				body: JSON.stringify(data),
@@ -45,8 +45,8 @@ export const usersService = {
 
 	// Update user - no cache for mutable operations
 	async update(id: string, data: UserUpdateInput) {
-		return apiRequest<User>(
-			`${BASE_URL}/users/${id}`,
+		return apiClient.request<User>(
+			`/users/${id}`,
 			{
 				method: 'PUT',
 				body: JSON.stringify(data),
@@ -58,7 +58,7 @@ export const usersService = {
 
 	// Delete user - no cache for mutable operations
 	async delete(id: string) {
-		return apiRequest<void>(`${BASE_URL}/users/${id}`, {
+		return apiClient.request<void>(`/users/${id}`, {
 			method: 'DELETE',
 			cache: 'no-store',
 		})

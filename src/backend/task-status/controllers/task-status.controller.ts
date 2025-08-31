@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { inject, injectable } from 'tsyringe'
-import { AuthenticatedUser } from '@/backend/common/decorators'
+import { IsAuthenticated } from '@/backend/common/decorators'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
+import { validateIdParam } from '@/backend/common/validation/common.schema'
 import { TaskStatusService } from '@/backend/task-status/services/task-status.service'
 import {
 	TaskStatusCreationSchema,
@@ -13,8 +14,8 @@ import type { User } from '@/backend/users/validation/user.schema'
 export class TaskStatusController {
 	constructor(@inject(TaskStatusService) private readonly service: TaskStatusService) {}
 
-	@AuthenticatedUser()
-	async create(authenticatedUser: User, req: Request) {
+	@IsAuthenticated()
+	async create(req: Request) {
 		try {
 			const body = await req.json()
 			const data = TaskStatusCreationSchema.parse(body)
@@ -30,8 +31,8 @@ export class TaskStatusController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async getAll(authenticatedUser: User) {
+	@IsAuthenticated()
+	async getAll() {
 		try {
 			const taskStatuses = await this.service.getAllTaskStatuses()
 
@@ -44,10 +45,13 @@ export class TaskStatusController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async getById(authenticatedUser: User, id: string) {
+	@IsAuthenticated()
+	async getById(id: string) {
 		try {
-			const taskStatus = await this.service.getTaskStatusById(id)
+			// Validate ID parameter before calling service
+			const validatedId = validateIdParam(id)
+
+			const taskStatus = await this.service.getTaskStatusById(validatedId)
 
 			if (!taskStatus) {
 				return NextResponse.json(
@@ -65,13 +69,16 @@ export class TaskStatusController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async update(authenticatedUser: User, id: string, req: Request) {
+	@IsAuthenticated()
+	async update(id: string, req: Request) {
 		try {
+			// Validate ID parameter before calling service
+			const validatedId = validateIdParam(id)
+
 			const body = await req.json()
 			const data = TaskStatusUpdateSchema.parse(body)
 
-			const taskStatus = await this.service.updateTaskStatus(id, data)
+			const taskStatus = await this.service.updateTaskStatus(validatedId, data)
 
 			return NextResponse.json(
 				{ success: true, message: 'Task status successfully updated', data: taskStatus },
@@ -82,10 +89,13 @@ export class TaskStatusController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async delete(authenticatedUser: User, id: string) {
+	@IsAuthenticated()
+	async delete(id: string) {
 		try {
-			await this.service.deleteTaskStatus(id)
+			// Validate ID parameter before calling service
+			const validatedId = validateIdParam(id)
+
+			await this.service.deleteTaskStatus(validatedId)
 
 			return NextResponse.json(
 				{ success: true, message: 'Task status successfully deleted' },

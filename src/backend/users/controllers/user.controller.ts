@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { inject, injectable } from 'tsyringe'
-import { AuthenticatedUser } from '@/backend/common/decorators'
+import { IsAuthenticated } from '@/backend/common/decorators'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
+import { validateIdParam } from '@/backend/common/validation/common.schema'
 import { UserService } from '@/backend/users/services/user.service'
 import type { User } from '@/backend/users/validation/user.schema'
 import { UserCreationSchema, UserUpdateSchema } from '@/backend/users/validation/user.schema'
@@ -27,7 +28,7 @@ export class UserController {
 		}
 	}
 
-	@AuthenticatedUser()
+	@IsAuthenticated()
 	async getAll() {
 		try {
 			const users = await this.service.getAllUsers()
@@ -41,10 +42,13 @@ export class UserController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async getById(authenticatedUser: User, id: string) {
+	@IsAuthenticated()
+	async getById(id: string) {
 		try {
-			const user = await this.service.getUserById(id)
+			// Validate ID parameter before calling service
+			const validatedId = validateIdParam(id)
+
+			const user = await this.service.getUserById(validatedId)
 
 			if (!user) {
 				return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
@@ -59,13 +63,16 @@ export class UserController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async update(authenticatedUser: User, id: string, req: Request) {
+	@IsAuthenticated()
+	async update(id: string, req: Request) {
 		try {
+			// Validate ID parameter before calling service
+			const validatedId = validateIdParam(id)
+
 			const body = await req.json()
 			const data = UserUpdateSchema.parse(body)
 
-			const user = await this.service.updateUser(id, data)
+			const user = await this.service.updateUser(validatedId, data)
 
 			return NextResponse.json(
 				{ success: true, message: 'User successfully updated', data: user },
@@ -76,10 +83,13 @@ export class UserController {
 		}
 	}
 
-	@AuthenticatedUser()
-	async delete(authenticatedUser: User, id: string) {
+	@IsAuthenticated()
+	async delete(id: string) {
 		try {
-			await this.service.deleteUser(id)
+			// Validate ID parameter before calling service
+			const validatedId = validateIdParam(id)
+
+			await this.service.deleteUser(validatedId)
 
 			return NextResponse.json(
 				{ success: true, message: 'User successfully deleted' },

@@ -1,6 +1,6 @@
+import type { PaginatedApiResponse } from '@/backend/common/types'
+import type { PaginationQuery } from '@/backend/common/validation/common.schema'
 import type {
-	PaginatedTasksResponse,
-	PaginationQuery,
 	Task,
 	TaskDbInsert,
 	TasksReorderInput,
@@ -14,7 +14,7 @@ export interface ITaskRepository {
 	findAllByUserIdPaginated(
 		userId: string,
 		pagination: PaginationQuery,
-	): Promise<PaginatedTasksResponse>
+	): Promise<PaginatedApiResponse<Task>>
 	findById(id: string): Promise<Task | null>
 	update(id: string, task: TaskUpdateInput): Promise<Task>
 	delete(id: string): Promise<void>

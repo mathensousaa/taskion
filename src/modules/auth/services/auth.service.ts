@@ -3,13 +3,13 @@ import {
 	AuthResponseSchema,
 	type LoginInput,
 } from '@/backend/auth/validation/auth.schema'
-import { apiRequest, BASE_URL } from '@/lib/api-client'
+import { apiClient } from '@/configs/fetch-clients'
 
 export const authService = {
 	// Login user - no cache for authentication
 	async login(data: LoginInput) {
-		return apiRequest<AuthResponse>(
-			`${BASE_URL}/auth/login`,
+		return apiClient.request<AuthResponse>(
+			`/auth/login`,
 			{
 				method: 'POST',
 				body: JSON.stringify(data),
@@ -21,7 +21,7 @@ export const authService = {
 
 	// Logout user - no cache for authentication
 	async logout() {
-		return apiRequest<void>(`${BASE_URL}/auth/logout`, {
+		return apiClient.request<void>('/auth/logout', {
 			method: 'POST',
 			cache: 'no-store',
 		})
@@ -29,8 +29,8 @@ export const authService = {
 
 	// Get current user - no cache for authentication state
 	async me() {
-		return apiRequest<AuthResponse>(
-			`${BASE_URL}/auth/me`,
+		return apiClient.request<AuthResponse>(
+			`/auth/me`,
 			{
 				cache: 'no-store',
 			},

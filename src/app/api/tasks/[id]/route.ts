@@ -1,13 +1,13 @@
 import { taskController } from '@/server-container'
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-	return await taskController.getById(params.id)
+	return await taskController.getById(req, params.id)
 }
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
-	return await taskController.update(params.id, req)
+	return await taskController.update(req, params.id)
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-	return await taskController.delete(params.id)
+	return await taskController.delete(req, params.id)
 }
