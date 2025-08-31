@@ -11,7 +11,7 @@ export type {
 	Task,
 	TaskCreationInput,
 	TaskUpdateInput,
-} from '@/backend/tasks/validation/task.creation.schema'
+} from '@/backend/tasks/validation/task.schema'
 export type {
 	User,
 	UserCreationInput,

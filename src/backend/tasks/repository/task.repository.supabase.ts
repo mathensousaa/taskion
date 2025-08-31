@@ -1,15 +1,15 @@
 import { injectable } from 'tsyringe'
+import type { Paginated } from '@/backend/common/types'
+import type { PaginationQuery } from '@/backend/common/validation/common.schema'
 import type { ITaskRepository } from '@/backend/tasks/repository/task.repository'
 import {
 	type Cursor,
-	type PaginatedTasksResponse,
-	type PaginationQuery,
 	type Task,
 	type TaskDbInsert,
 	TaskSchema,
 	type TasksReorderInput,
 	type TaskUpdateInput,
-} from '@/backend/tasks/validation/task.creation.schema'
+} from '@/backend/tasks/validation/task.schema'
 import { supabase } from '@/lib/supabase/server'
 
 @injectable()
@@ -54,7 +54,7 @@ export class TaskRepositorySupabase implements ITaskRepository {
 	async findAllByUserIdPaginated(
 		userId: string,
 		pagination: PaginationQuery,
-	): Promise<PaginatedTasksResponse> {
+	): Promise<Paginated<Task>> {
 		const { limit, cursor } = pagination
 
 		let query = supabase
@@ -94,7 +94,7 @@ export class TaskRepositorySupabase implements ITaskRepository {
 		}
 
 		return {
-			tasks: resultTasks,
+			data: resultTasks,
 			nextCursor,
 			hasMore,
 		}
@@ -154,8 +154,8 @@ export class TaskRepositorySupabase implements ITaskRepository {
 
 		if (fetchError) throw fetchError
 
-		// Create a map of current orders
-		const currentOrders = new Map(existingTasks.map((task) => [task.id, task.order]))
+		// // Create a map of current orders
+		// const currentOrders = new Map(existingTasks.map((task) => [task.id, task.order]))
 
 		// Calculate new orders for all affected tasks
 		const updates: Array<{ id: string; order: number }> = []
@@ -187,21 +187,21 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			}
 		}
 
-		const { data: updatedTasks, error: updateError } = await supabase
-			.from('tasks')
-			.update(
-				updates.map((update) => ({
-					order: update.order,
-					updated_at: new Date().toISOString(),
-				})),
-			)
-			.in(
-				'id',
-				updates.map((update) => update.id),
-			)
-			.select()
+		// const { data: updatedTasks, error: updateError } = await supabase
+		// 	.from('tasks')
+		// 	.update(
+		// 		updates.map((update) => ({
+		// 			order: update.order,
+		// 			updated_at: new Date().toISOString(),
+		// 		})),
+		// 	)
+		// 	.in(
+		// 		'id',
+		// 		updates.map((update) => update.id),
+		// 	)
+		// 	.select()
 
-		if (updateError) throw updateError
+		// if (updateError) throw updateError
 
 		// Return the updated tasks in the correct order
 		const { data: finalTasks, error: finalError } = await supabase

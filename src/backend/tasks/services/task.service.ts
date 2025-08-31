@@ -1,7 +1,6 @@
 import { inject, injectable } from 'tsyringe'
-import { en } from 'zod/v4/locales'
 import { UnauthorizedError } from '@/backend/common/errors/unauthorized-error'
-import type { PaginatedApiResponse } from '@/backend/common/types'
+import type { Paginated } from '@/backend/common/types'
 import type { PaginationQuery } from '@/backend/common/validation/common.schema'
 import { TaskEnhancerService } from '@/backend/task-enhancer/services/task-enhancer.service'
 import { TaskStatusService } from '@/backend/task-status/services/task-status.service'
@@ -12,7 +11,7 @@ import {
 	TaskDbInsertSchema,
 	type TasksReorderInput,
 	type TaskUpdateInput,
-} from '@/backend/tasks/validation/task.creation.schema'
+} from '@/backend/tasks/validation/task.schema'
 import type { User } from '@/backend/users/validation/user.schema'
 
 @injectable()
@@ -54,7 +53,7 @@ export class TaskService {
 	async getTasksPaginated(
 		authenticatedUser: User,
 		pagination: PaginationQuery,
-	): Promise<PaginatedApiResponse<Task>> {
+	): Promise<Paginated<Task>> {
 		// Only return tasks belonging to the authenticated user with pagination
 		return await this.taskRepository.findAllByUserIdPaginated(authenticatedUser.id, pagination)
 	}
