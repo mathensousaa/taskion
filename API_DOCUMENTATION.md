@@ -99,6 +99,20 @@ The Tasks module handles all task-related operations including creation, retriev
 ```
 - **Response:** Success confirmation
 
+##### Enhance Task
+- **Method:** `POST`
+- **URL:** `/tasks/:id/enhance`
+- **Description:** Enhances a task description using AI-powered task enhancement
+- **Authentication:** Required (supports both session-based auth and API key)
+- **URL Parameters:**
+  - `id`: Task UUID
+- **Request Body:** None
+- **API Key Authentication:** 
+  - Header: `x-api-key: your-api-key`
+  - Body: `{ "user_id": "user-uuid" }`
+- **Response:** Enhanced task object with improved description
+- **Notes:** This endpoint is designed for both user interfaces and external integrations like n8n workflows
+
 ---
 
 ### 2. Authentication Module

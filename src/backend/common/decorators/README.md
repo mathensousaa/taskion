@@ -26,11 +26,11 @@ async getUserProfile(authenticatedUser: { email: string }) {
 }
 ```
 
-### 3. `@AuthenticatedUser()`
+### 3. `@IsAuthenticated()`
 Advanced authentication decorator that validates the user against the database and provides the full user object.
 
 ```typescript
-@AuthenticatedUser()
+@IsAuthenticated()
 async getTasks(authenticatedUser: User) {
     // authenticatedUser contains the full User object from the database
     // You can access: authenticatedUser.id, authenticatedUser.email, authenticatedUser.name
@@ -54,13 +54,13 @@ async deleteUser(authenticatedUser: User, userId: string) {
 ### Protecting Controller Methods
 
 ```typescript
-import { AuthenticatedUser } from '@/backend/common/decorators'
+import { IsAuthenticated } from '@/backend/common/decorators'
 
 @injectable()
 export class TaskController {
     constructor(@inject(TaskService) private readonly service: TaskService) {}
 
-    @AuthenticatedUser()
+    @IsAuthenticated()
     async createTask(authenticatedUser: User, req: Request) {
         const body = await req.json()
         const taskData = { ...body, user_id: authenticatedUser.id }
@@ -69,7 +69,7 @@ export class TaskController {
         return NextResponse.json({ success: true, task })
     }
 
-    @AuthenticatedUser()
+    @IsAuthenticated()
     async getMyTasks(authenticatedUser: User) {
         // Filter tasks by the authenticated user
         const tasks = await this.service.getTasksByUserId(authenticatedUser.id)
@@ -85,7 +85,7 @@ The decorators work seamlessly with your existing route handlers. The authentica
 ```typescript
 // src/app/api/tasks/route.ts
 export async function GET() {
-    return await controller.getMyTasks() // @AuthenticatedUser() decorator will handle auth
+    return await controller.getMyTasks() // @IsAuthenticated() decorator will handle auth
 }
 ```
 
@@ -106,7 +106,7 @@ All decorators throw `UnauthorizedError` when authentication fails, which integr
 
 ## Best Practices
 
-1. **Use `@AuthenticatedUser()` for most protected routes** - Provides full user context
+1. **Use `@IsAuthenticated()` for most protected routes** - Provides full user context
 2. **Use `@Authenticated()` for simple protection** - When you only need to check if user is logged in
 3. **Implement permission checks in the decorator** - Extend `@AuthenticatedUserWithPermission()` for role-based access
 4. **Always validate user ownership** - Check if resources belong to the authenticated user

@@ -1,4 +1,4 @@
-import { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/lib/fetch-client'
 import { taskStatusService, tasksService, usersService } from '@/modules'
 
 export default async function TasksExample() {

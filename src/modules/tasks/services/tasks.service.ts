@@ -7,7 +7,7 @@ import {
 	type TasksReorderInput,
 	type TaskUpdateInput,
 } from '@/backend/tasks/validation/task.creation.schema'
-import { apiRequest, BASE_URL } from '@/lib/api-client'
+import { apiClient } from '@/configs/fetch-clients'
 
 export const tasksService = {
 	// List tasks with pagination - use force-cache for semi-static data
@@ -18,8 +18,8 @@ export const tasksService = {
 			params.append('cursor', JSON.stringify(cursor))
 		}
 
-		return apiRequest<PaginatedTasksResponse>(
-			`${BASE_URL}/tasks?${params.toString()}`,
+		return apiClient.request<PaginatedTasksResponse>(
+			`/tasks?${params.toString()}`,
 			{
 				cache: 'force-cache',
 			},
@@ -29,8 +29,8 @@ export const tasksService = {
 
 	// Get task by ID - use force-cache for individual tasks
 	async getById(id: string) {
-		return apiRequest<Task>(
-			`${BASE_URL}/tasks/${id}`,
+		return apiClient.request<Task>(
+			`/tasks/${id}`,
 			{
 				cache: 'force-cache',
 			},
@@ -40,8 +40,8 @@ export const tasksService = {
 
 	// Create new task - no cache for mutable operations
 	async create(data: TaskCreationInput) {
-		return apiRequest<Task>(
-			`${BASE_URL}/tasks`,
+		return apiClient.request<Task>(
+			`/tasks`,
 			{
 				method: 'POST',
 				body: JSON.stringify(data),
@@ -53,8 +53,8 @@ export const tasksService = {
 
 	// Update task - no cache for mutable operations
 	async update(id: string, data: TaskUpdateInput) {
-		return apiRequest<Task>(
-			`${BASE_URL}/tasks/${id}`,
+		return apiClient.request<Task>(
+			`/tasks/${id}`,
 			{
 				method: 'PUT',
 				body: JSON.stringify(data),
@@ -66,7 +66,7 @@ export const tasksService = {
 
 	// Delete task - no cache for mutable operations
 	async delete(id: string) {
-		return apiRequest<void>(`${BASE_URL}/tasks/${id}`, {
+		return apiClient.request<void>(`/tasks/${id}`, {
 			method: 'DELETE',
 			cache: 'no-store',
 		})
@@ -74,7 +74,7 @@ export const tasksService = {
 
 	// Reorder tasks - no cache for mutable operations
 	async reorder(tasks: TasksReorderInput) {
-		return apiRequest<void>(`${BASE_URL}/tasks`, {
+		return apiClient.request<void>('/tasks', {
 			method: 'PATCH',
 			body: JSON.stringify(tasks),
 			cache: 'no-store',

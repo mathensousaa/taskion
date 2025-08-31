@@ -1,3 +1,4 @@
+import { ApiError } from 'next/dist/server/api-utils'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { AlreadyExistsError } from '@/backend/common/errors/already-exists-error'
@@ -21,6 +22,15 @@ export class ErrorHandler {
 			return NextResponse.json(error.toJSON(), { status: error.statusCode })
 		if (error instanceof UnauthorizedError)
 			return NextResponse.json(error.toJSON(), { status: error.statusCode })
+		if (error instanceof ApiError)
+			return NextResponse.json(
+				{
+					message: error.message,
+					errors: error.cause,
+					status: error.statusCode,
+				},
+				{ status: error.statusCode },
+			)
 		if (error instanceof InternalServerError) return error.sendResponse()
 
 		console.error(`Unhandled error${context ? ` in ${context}` : ''}:`, error)

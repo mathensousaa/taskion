@@ -114,6 +114,28 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "enhance task",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/tasks/task-id-here/enhance",
+							"host": ["{{api_url}}"],
+							"path": ["tasks", "task-id-here", "enhance"]
+						}
+					},
+					"response": []
 				}
 			]
 		},

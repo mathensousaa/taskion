@@ -52,21 +52,6 @@ export const CursorSchema = z.object({
 
 export type Cursor = z.infer<typeof CursorSchema>
 
-export const PaginationQuerySchema = z.object({
-	limit: z.coerce.number().int().min(1).max(100).default(20),
-	cursor: CursorSchema.optional(),
-})
-
-export type PaginationQuery = z.infer<typeof PaginationQuerySchema>
-
-export const PaginatedTasksResponseSchema = z.object({
-	data: z.array(TaskSchema),
-	nextCursor: CursorSchema.optional(),
-	hasMore: z.boolean(),
-})
-
-export type PaginatedTasksResponse = z.infer<typeof PaginatedTasksResponseSchema>
-
 // Reorder types
 export const TaskReorderSchema = z.object({
 	taskId: z.uuid(),

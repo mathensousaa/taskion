@@ -5,13 +5,13 @@ import {
 	TaskStatusSchema,
 	type TaskStatusUpdateInput,
 } from '@/backend/task-status/validation/task-status.schema'
-import { apiRequest, BASE_URL } from '@/lib/api-client'
+import { apiClient } from '@/configs/fetch-clients'
 
 export const taskStatusService = {
 	// List task statuses - use force-cache for semi-static data
 	async list() {
-		return apiRequest<TaskStatus[]>(
-			`${BASE_URL}/task-status`,
+		return apiClient.request<TaskStatus[]>(
+			'/task-status',
 			{
 				cache: 'force-cache',
 			},
@@ -21,8 +21,8 @@ export const taskStatusService = {
 
 	// Get task status by ID - use force-cache for individual statuses
 	async getById(id: string) {
-		return apiRequest<TaskStatus>(
-			`${BASE_URL}/task-status/${id}`,
+		return apiClient.request<TaskStatus>(
+			`/task-status/${id}`,
 			{
 				cache: 'force-cache',
 			},
@@ -32,8 +32,8 @@ export const taskStatusService = {
 
 	// Create new task status - no cache for mutable operations
 	async create(data: TaskStatusCreationInput) {
-		return apiRequest<TaskStatus>(
-			`${BASE_URL}/task-status`,
+		return apiClient.request<TaskStatus>(
+			'/task-status',
 			{
 				method: 'POST',
 				body: JSON.stringify(data),
@@ -45,8 +45,8 @@ export const taskStatusService = {
 
 	// Update task status - no cache for mutable operations
 	async update(id: string, data: TaskStatusUpdateInput) {
-		return apiRequest<TaskStatus>(
-			`${BASE_URL}/task-status/${id}`,
+		return apiClient.request<TaskStatus>(
+			`/task-status/${id}`,
 			{
 				method: 'PUT',
 				body: JSON.stringify(data),
@@ -58,7 +58,7 @@ export const taskStatusService = {
 
 	// Delete task status - no cache for mutable operations
 	async delete(id: string) {
-		return apiRequest<void>(`${BASE_URL}/task-status/${id}`, {
+		return apiClient.request<void>(`/task-status/${id}`, {
 			method: 'DELETE',
 			cache: 'no-store',
 		})
