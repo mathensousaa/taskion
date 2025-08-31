@@ -9,7 +9,7 @@ import {
 	TaskCreationSchema,
 	TasksReorderSchema,
 	TaskUpdateSchema,
-} from '@/backend/tasks/validation/task.creation.schema'
+} from '@/backend/tasks/validation/task.schema'
 
 @injectable()
 export class TaskController {

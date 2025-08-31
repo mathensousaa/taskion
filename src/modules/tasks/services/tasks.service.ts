@@ -1,12 +1,12 @@
+import z from 'zod'
+import type { PaginatedApiResponse } from '@/backend/common/types'
 import {
-	type PaginatedTasksResponse,
-	PaginatedTasksResponseSchema,
 	type Task,
 	type TaskCreationInput,
 	TaskSchema,
 	type TasksReorderInput,
 	type TaskUpdateInput,
-} from '@/backend/tasks/validation/task.creation.schema'
+} from '@/backend/tasks/validation/task.schema'
 import { apiClient } from '@/configs/fetch-clients'
 
 export const tasksService = {
@@ -18,13 +18,9 @@ export const tasksService = {
 			params.append('cursor', JSON.stringify(cursor))
 		}
 
-		return apiClient.request<PaginatedTasksResponse>(
-			`/tasks?${params.toString()}`,
-			{
-				cache: 'force-cache',
-			},
-			PaginatedTasksResponseSchema,
-		)
+		return apiClient.request<PaginatedApiResponse<Task>>(`/tasks?${params.toString()}`, {
+			cache: 'force-cache',
+		})
 	},
 
 	// Get task by ID - use force-cache for individual tasks

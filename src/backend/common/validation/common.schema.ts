@@ -1,4 +1,5 @@
 import z from 'zod'
+import { CursorSchema } from '@/backend/tasks/validation/task.schema'
 
 // Common parameter validation schemas
 
@@ -8,7 +9,7 @@ export const IdParamSchema = z.object({
 
 export const PaginationQuerySchema = z.object({
 	limit: z.coerce.number().int().min(1).max(100).default(20),
-	cursor: z.string().optional(),
+	cursor: CursorSchema.optional(),
 	page: z.coerce.number().int().min(1).optional(),
 })
 
