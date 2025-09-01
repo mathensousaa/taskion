@@ -235,4 +235,46 @@ export class TaskRepositorySupabase implements ITaskRepository {
 
 		return data.order
 	}
+
+	async findTrashByUserId(userId: string): Promise<Task[]> {
+		const { data, error } = await supabase
+			.from('tasks')
+			.select('*')
+			.eq('user_id', userId)
+			.not('deleted_at', 'is', null)
+			.order('deleted_at', { ascending: false })
+			.order('created_at', { ascending: true })
+			.order('id', { ascending: true })
+
+		if (error) throw error
+
+		return data.map((task) => TaskSchema.parse(task))
+	}
+
+	async findByIdIncludingDeleted(id: string): Promise<Task | null> {
+		const { data, error } = await supabase.from('tasks').select('*').eq('id', id).single()
+
+		if (error) {
+			if (error.code === 'PGRST116') return null
+			throw error
+		}
+
+		return TaskSchema.parse(data)
+	}
+
+	async permanentlyDelete(id: string): Promise<void> {
+		const { error } = await supabase.from('tasks').delete().eq('id', id)
+
+		if (error) throw error
+	}
+
+	async permanentlyDeleteAllByUserId(userId: string): Promise<void> {
+		const { error } = await supabase
+			.from('tasks')
+			.delete()
+			.eq('user_id', userId)
+			.not('deleted_at', 'is', null)
+
+		if (error) throw error
+	}
 }

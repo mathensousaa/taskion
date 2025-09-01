@@ -1,5 +1,5 @@
 import z from 'zod'
-import type { PaginatedApiResponse } from '@/backend/common/types'
+import type { ApiResponse, PaginatedApiResponse } from '@/backend/common/types'
 import {
 	type Task,
 	type TaskCreationInput,
@@ -8,6 +8,7 @@ import {
 	type TaskUpdateInput,
 } from '@/backend/tasks/validation/task.schema'
 import { apiClient } from '@/configs/fetch-clients'
+import { parseResponseData } from '@/lib/utils'
 
 export const tasksService = {
 	// List tasks with pagination - use force-cache for semi-static data
@@ -19,32 +20,28 @@ export const tasksService = {
 		}
 
 		return apiClient.request<PaginatedApiResponse<Task>>(`/tasks?${params.toString()}`, {
-			cache: 'force-cache',
+			cache: 'no-store',
 		})
 	},
 
 	// Get task by ID - use force-cache for individual tasks
 	async getById(id: string) {
-		return apiClient.request<Task>(
-			`/tasks/${id}`,
-			{
-				cache: 'force-cache',
-			},
-			TaskSchema,
-		)
+		return apiClient
+			.request<ApiResponse<Task>>(`/tasks/${id}`, {
+				cache: 'no-store',
+			})
+			.then(parseResponseData<Task>)
 	},
 
 	// Create new task - no cache for mutable operations
 	async create(data: TaskCreationInput) {
-		return apiClient.request<Task>(
-			`/tasks`,
-			{
+		return apiClient
+			.request<ApiResponse<Task>>(`/tasks`, {
 				method: 'POST',
 				body: JSON.stringify(data),
 				cache: 'no-store',
-			},
-			TaskSchema,
-		)
+			})
+			.then(parseResponseData<Task>)
 	},
 
 	// Update task - no cache for mutable operations

@@ -9,7 +9,7 @@ export type LoginInput = z.infer<typeof LoginSchema>
 export const AuthResponseSchema = z.object({
 	success: z.boolean(),
 	message: z.string().optional(),
-	user: z
+	data: z
 		.object({
 			id: z.string(),
 			email: z.string(),

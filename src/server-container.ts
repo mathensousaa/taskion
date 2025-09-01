@@ -11,6 +11,7 @@ import type { ITaskStatusRepository } from '@/backend/task-status/repository/tas
 import { TaskStatusRepositorySupabase } from '@/backend/task-status/repository/task-status.repository.supabase'
 import { TaskStatusService } from '@/backend/task-status/services/task-status.service'
 import { TaskController } from '@/backend/tasks/controllers/task.controller'
+import { TrashController } from '@/backend/tasks/controllers/trash.controller'
 import type { ITaskRepository } from '@/backend/tasks/repository/task.repository'
 import { TaskRepositorySupabase } from '@/backend/tasks/repository/task.repository.supabase'
 // Task dependencies
@@ -51,6 +52,7 @@ container.register(AuthService, AuthService)
 
 // Register controllers
 container.register(TaskController, TaskController)
+container.register(TrashController, TrashController)
 container.register(TaskStatusController, TaskStatusController)
 container.register(UserController, UserController)
 container.register(AuthController, AuthController)
@@ -65,6 +67,7 @@ export const userService = container.resolve(UserService)
 
 export const taskController = container.resolve(TaskController)
 export const taskService = container.resolve(TaskService)
+export const trashController = container.resolve(TrashController)
 
 export const taskStatusController = container.resolve(TaskStatusController)
 export const taskStatusService = container.resolve(TaskStatusService)

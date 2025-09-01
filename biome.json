@@ -1,42 +1,42 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "files": {
-    "ignoreUnknown": true,
-    "includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
-  },
+	"$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
+	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
 		"indentWidth": 2,
 		"lineWidth": 100
 	},
-  "javascript": {
+	"javascript": {
 		"formatter": {
 			"quoteStyle": "single",
 			"semicolons": "asNeeded",
 			"trailingCommas": "all",
 			"indentWidth": 2
 		},
-    "parser": {
-      "unsafeParameterDecoratorsEnabled": true
-    }
+		"parser": {
+			"unsafeParameterDecoratorsEnabled": true
+		}
 	},
-  "json": {},
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "complexity": {},
+	"json": {},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"complexity": {},
 			"correctness": {},
-      "suspicious": {
-        "noUnknownAtRules": "off"
-      },
-      "nursery": {
+			"suspicious": {
+				"noUnknownAtRules": "off"
+			},
+			"nursery": {
 				"useSortedClasses": {
 					"level": "error",
 					"fix": "safe",
@@ -46,19 +46,22 @@
 					}
 				}
 			},
-      "performance": {},
-			"security": {}
-    },
-    "domains": {
-      "next": "recommended",
-      "react": "recommended"
-    }
-  },
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  }
+			"performance": {},
+			"security": {},
+			"style": {
+				"noNonNullAssertion": "off"
+			}
+		},
+		"domains": {
+			"next": "recommended",
+			"react": "recommended"
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
 }

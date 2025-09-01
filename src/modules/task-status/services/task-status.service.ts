@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ApiResponse } from '@/backend/common/types'
 import {
 	type TaskStatus,
 	type TaskStatusCreationInput,
@@ -6,6 +7,7 @@ import {
 	type TaskStatusUpdateInput,
 } from '@/backend/task-status/validation/task-status.schema'
 import { apiClient } from '@/configs/fetch-clients'
+import { parseResponseData } from '@/lib/utils'
 
 export const taskStatusService = {
 	// List task statuses - use force-cache for semi-static data
@@ -21,13 +23,11 @@ export const taskStatusService = {
 
 	// Get task status by ID - use force-cache for individual statuses
 	async getById(id: string) {
-		return apiClient.request<TaskStatus>(
-			`/task-status/${id}`,
-			{
-				cache: 'force-cache',
-			},
-			TaskStatusSchema,
-		)
+		const response = await apiClient.request<ApiResponse<TaskStatus>>(`/task-status/${id}`, {
+			cache: 'force-cache',
+		})
+
+		return parseResponseData<TaskStatus>(response)
 	},
 
 	// Create new task status - no cache for mutable operations
