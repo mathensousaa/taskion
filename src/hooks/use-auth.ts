@@ -29,8 +29,6 @@ export function useAuth() {
 			setAuthState((prev) => ({ ...prev, isLoading: true }))
 			const response = await authService.me()
 
-			console.log('response', response)
-
 			if (response.success && response.data) {
 				setAuthState({
 					user: response.data,
