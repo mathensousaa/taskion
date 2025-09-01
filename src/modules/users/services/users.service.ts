@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ApiResponse } from '@/backend/common/types'
 import {
 	type User,
 	type UserCreationInput,
@@ -6,6 +7,7 @@ import {
 	type UserUpdateInput,
 } from '@/backend/users/validation/user.schema'
 import { apiClient } from '@/configs/fetch-clients'
+import { parseResponseData } from '@/lib/utils'
 
 export const usersService = {
 	// List users - use force-cache for semi-static data
@@ -32,15 +34,13 @@ export const usersService = {
 
 	// Create new user - no cache for mutable operations
 	async create(data: UserCreationInput) {
-		return apiClient.request<User>(
-			'/users',
-			{
+		return apiClient
+			.request<ApiResponse<User>>('/users', {
 				method: 'POST',
 				body: JSON.stringify(data),
 				cache: 'no-store',
-			},
-			UserSchema,
-		)
+			})
+			.then(parseResponseData<User>)
 	},
 
 	// Update user - no cache for mutable operations

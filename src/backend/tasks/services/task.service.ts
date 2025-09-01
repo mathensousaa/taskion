@@ -125,4 +125,34 @@ export class TaskService {
 		// Perform the reordering
 		return await this.taskRepository.reorderTasks(authenticatedUser.id, reorderData)
 	}
+
+	async getTrash(authenticatedUser: User) {
+		// Get all soft-deleted tasks belonging to the authenticated user
+		return await this.taskRepository.findTrashByUserId(authenticatedUser.id)
+	}
+
+	async permanentlyDeleteTask(id: string, authenticatedUser: User) {
+		// First verify the task exists, is soft-deleted, and belongs to the authenticated user
+		const existingTask = await this.taskRepository.findByIdIncludingDeleted(id)
+
+		if (!existingTask) {
+			throw new UnauthorizedError('Task not found')
+		}
+
+		if (existingTask.user_id !== authenticatedUser.id) {
+			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+		}
+
+		if (!existingTask.deleted_at) {
+			throw new UnauthorizedError('Task is not in trash')
+		}
+
+		// Permanently delete the task
+		await this.taskRepository.permanentlyDelete(id)
+	}
+
+	async emptyTrash(authenticatedUser: User) {
+		// Permanently delete all soft-deleted tasks belonging to the authenticated user
+		await this.taskRepository.permanentlyDeleteAllByUserId(authenticatedUser.id)
+	}
 }

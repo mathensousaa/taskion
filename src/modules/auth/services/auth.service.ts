@@ -9,7 +9,7 @@ export const authService = {
 	// Login user - no cache for authentication
 	async login(data: LoginInput) {
 		return apiClient.request<AuthResponse>(
-			`/auth/login`,
+			`/login`,
 			{
 				method: 'POST',
 				body: JSON.stringify(data),
@@ -21,7 +21,7 @@ export const authService = {
 
 	// Logout user - no cache for authentication
 	async logout() {
-		return apiClient.request<void>('/auth/logout', {
+		return apiClient.request<void>('/logout', {
 			method: 'POST',
 			cache: 'no-store',
 		})
@@ -30,7 +30,7 @@ export const authService = {
 	// Get current user - no cache for authentication state
 	async me() {
 		return apiClient.request<AuthResponse>(
-			`/auth/me`,
+			`/me`,
 			{
 				cache: 'no-store',
 			},
