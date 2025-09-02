@@ -1,4 +1,5 @@
 import { inject, injectable } from 'tsyringe'
+import { NotFoundError } from '@/backend/common/errors/not-found-error'
 import { UnauthorizedError } from '@/backend/common/errors/unauthorized-error'
 import type { Paginated } from '@/backend/common/types'
 import type { PaginationQuery } from '@/backend/common/validation/common.schema'
@@ -67,7 +68,7 @@ export class TaskService {
 
 		// Verify the task belongs to the authenticated user
 		if (task.user_id !== authenticatedUser.id) {
-			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+			throw new NotFoundError('Task not found')
 		}
 
 		return task
@@ -78,11 +79,11 @@ export class TaskService {
 		const existingTask = await this.taskRepository.findById(id)
 
 		if (!existingTask) {
-			throw new UnauthorizedError('Task not found')
+			throw new NotFoundError('Task not found')
 		}
 
 		if (existingTask.user_id !== authenticatedUser.id) {
-			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+			throw new NotFoundError('Task not found')
 		}
 
 		// Update the task with the provided data
@@ -94,11 +95,11 @@ export class TaskService {
 		const existingTask = await this.taskRepository.findById(id)
 
 		if (!existingTask) {
-			throw new UnauthorizedError('Task not found')
+			throw new NotFoundError('Task not found')
 		}
 
 		if (existingTask.user_id !== authenticatedUser.id) {
-			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+			throw new NotFoundError('Task not found')
 		}
 
 		await this.taskRepository.delete(id)
@@ -136,15 +137,15 @@ export class TaskService {
 		const existingTask = await this.taskRepository.findByIdIncludingDeleted(id)
 
 		if (!existingTask) {
-			throw new UnauthorizedError('Task not found')
+			throw new NotFoundError('Task not found')
 		}
 
 		if (existingTask.user_id !== authenticatedUser.id) {
-			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+			throw new NotFoundError('Task not found')
 		}
 
 		if (!existingTask.deleted_at) {
-			throw new UnauthorizedError('Task is not in trash')
+			throw new NotFoundError('Task is not in trash')
 		}
 
 		// Permanently delete the task
@@ -154,5 +155,44 @@ export class TaskService {
 	async emptyTrash(authenticatedUser: User) {
 		// Permanently delete all soft-deleted tasks belonging to the authenticated user
 		await this.taskRepository.permanentlyDeleteAllByUserId(authenticatedUser.id)
+	}
+
+	async toggleTaskStatus(id: string, authenticatedUser: User) {
+		// First verify the task exists and belongs to the authenticated user
+		const existingTask = await this.taskRepository.findById(id)
+
+		if (!existingTask) {
+			throw new NotFoundError('Task not found')
+		}
+
+		if (existingTask.user_id !== authenticatedUser.id) {
+			throw new NotFoundError('Not found')
+		}
+
+		// Get the current task status
+		const currentStatus = await this.taskStatusService.getTaskStatusById(existingTask.status_id)
+		if (!currentStatus) {
+			throw new NotFoundError('Current task status not found')
+		}
+
+		// Determine the new status based on current status slug
+		let newStatusSlug: string
+		if (currentStatus.slug === 'not_started') {
+			newStatusSlug = 'done'
+		} else if (currentStatus.slug === 'done') {
+			newStatusSlug = 'not_started'
+		} else {
+			// If the task is in any other status, default to 'done'
+			newStatusSlug = 'done'
+		}
+
+		// Get the new status
+		const newStatus = await this.taskStatusService.getTaskStatusBySlug(newStatusSlug)
+		if (!newStatus) {
+			throw new NotFoundError(`Task status with slug '${newStatusSlug}' not found`)
+		}
+
+		// Update the task with the new status
+		return await this.taskRepository.update(id, { status_id: newStatus.id })
 	}
 }

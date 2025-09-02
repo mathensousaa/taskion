@@ -17,7 +17,8 @@ export type {
 	UserCreationInput,
 	UserUpdateInput,
 } from '@/backend/users/validation/user.schema'
-export { authService } from './auth/services/auth.service'
-export { taskStatusService } from './task-status/services/task-status.service'
-export { tasksService } from './tasks/services/tasks.service'
-export { usersService } from './users/services/users.service'
+export * from './auth/services'
+export * from './task-status/services'
+export * from './tasks/services'
+export * from './trash/services/trash.service'
+export * from './users/services'

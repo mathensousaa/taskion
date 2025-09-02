@@ -50,3 +50,20 @@ export function parseResponseData<T>(
 
 	return response.data
 }
+
+export const objectToQueryParams = (params?: object): string[] =>
+	params
+		? (Object.entries(params) as [string, unknown][])
+				.filter(([, v]) => !!v)
+				.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+		: []
+
+export const isQueryParam = (raw: unknown) => String(raw).split('=').length === 2
+
+export const truncateToWords = (text: string, wordCount: number): string => {
+	if (!text) return ''
+	const words = text.trim().split(/\s+/)
+	if (words.length <= wordCount) return text
+
+	return words.slice(0, wordCount).join(' ') + '...'
+}

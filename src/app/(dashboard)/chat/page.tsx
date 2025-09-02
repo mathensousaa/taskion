@@ -9,7 +9,7 @@ export default function Chat() {
 		<PageRoot>
 			<PageHeader>
 				<SidebarTrigger />
-				<PageTitle>Chat</PageTitle>
+				<PageTitle>Taskion AI Assistant</PageTitle>
 			</PageHeader>
 			<PageContent className="min-h-svh">
 				<Standard

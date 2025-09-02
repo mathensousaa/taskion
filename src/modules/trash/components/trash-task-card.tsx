@@ -2,6 +2,7 @@
 
 import { Calendar, Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import Markdown from 'react-markdown'
 import type { Task } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,8 +12,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
-import { trashService } from '@/modules/trash/services/trash.service'
+import { cn, truncateToWords } from '@/lib/utils'
+import { usePermanentlyDeleteTask } from '@/modules/trash/services/trash.service'
 
 interface TrashTaskCardProps {
 	task: Task
@@ -21,18 +22,17 @@ interface TrashTaskCardProps {
 }
 
 export function TrashTaskCard({ task, onPermanentlyDelete, className }: TrashTaskCardProps) {
-	const [isDeleting, setIsDeleting] = useState(false)
+	const { mutate: permanentlyDeleteTask, isPending: isDeleting } = usePermanentlyDeleteTask()
 
 	const handlePermanentlyDelete = async () => {
-		setIsDeleting(true)
-		try {
-			await trashService.permanentlyDeleteTask(task.id)
-			onPermanentlyDelete(task.id)
-		} catch (error) {
-			console.error('Failed to permanently delete task:', error)
-		} finally {
-			setIsDeleting(false)
-		}
+		permanentlyDeleteTask(task.id, {
+			onSuccess: () => {
+				onPermanentlyDelete(task.id)
+			},
+			onError: (error) => {
+				console.error('Failed to permanently delete task:', error)
+			},
+		})
 	}
 
 	const formatDeletedDate = (deletedAt: string) => {
@@ -64,8 +64,8 @@ export function TrashTaskCard({ task, onPermanentlyDelete, className }: TrashTas
 
 				{/* Description */}
 				{task.description && (
-					<div className="min-h-[20px]">
-						<div className="text-muted-foreground text-sm line-through">{task.description}</div>
+					<div className="text-muted-foreground text-xs">
+						<Markdown>{truncateToWords(task.description, 5)}</Markdown>
 					</div>
 				)}
 

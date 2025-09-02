@@ -1,7 +1,12 @@
 import z from 'zod'
 
 export const TaskCreationSchema = z.object({
-	title: z.string().min(1),
+	title: z
+		.string()
+		.min(1)
+		.refine((title) => title.trim().split(/\s+/).length >= 3, {
+			message: 'Please provide more details. Enter at least 3 words',
+		}),
 	description: z.string().optional(),
 	status_id: z.uuid().optional(),
 })
@@ -9,7 +14,13 @@ export const TaskCreationSchema = z.object({
 export type TaskCreationInput = z.infer<typeof TaskCreationSchema>
 
 export const TaskUpdateSchema = z.object({
-	title: z.string().min(1).optional(),
+	title: z
+		.string()
+		.min(1)
+		.refine((title) => title.trim().split(/\s+/).length >= 3, {
+			message: 'Please provide more details. Enter at least 3 words',
+		})
+		.optional(),
 	description: z.string().optional(),
 	status_id: z.uuid().optional(),
 	order: z.number().int().min(0).optional(),
@@ -18,7 +29,12 @@ export const TaskUpdateSchema = z.object({
 export type TaskUpdateInput = z.infer<typeof TaskUpdateSchema>
 
 export const TaskDbInsertSchema = z.object({
-	title: z.string().min(1),
+	title: z
+		.string()
+		.min(1)
+		.refine((title) => title.trim().split(/\s+/).length >= 3, {
+			message: 'Please provide more details. Enter at least 3 words',
+		}),
 	description: z.string().nullable(),
 	user_id: z.uuid(),
 	status_id: z.uuid(),

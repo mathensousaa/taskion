@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Mail, User } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -18,8 +19,8 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { authService } from '@/modules/auth/services/auth.service'
-import { usersService } from '@/modules/users/services/users.service'
+import { useLogin } from '@/modules/auth/services'
+import { useCreateUser } from '@/modules/users/services'
 
 const SignupSchema = z.object({
 	name: z.string().min(6, 'Name must be at least 6 characters long'),
@@ -28,13 +29,7 @@ const SignupSchema = z.object({
 
 type SignupFormData = z.infer<typeof SignupSchema>
 
-interface SignupFormProps {
-	onSwitchToLogin: () => void
-}
-
-export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
-	const router = useRouter()
-
+export function SignupForm() {
 	const form = useForm<SignupFormData>({
 		resolver: zodResolver(SignupSchema),
 		defaultValues: {
@@ -42,42 +37,45 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
 			email: '',
 		},
 	})
+	const router = useRouter()
+	const { mutate: createUser, isPending } = useCreateUser()
+	const { mutate: login } = useLogin()
 
-	const [isLoading, setIsLoading] = useState(false)
 	const [apiError, setApiError] = useState<string>('')
 
-	const onSubmit = async (values: SignupFormData) => {
+	const onSubmit = (values: SignupFormData) => {
 		setApiError('')
 
-		try {
-			setIsLoading(true)
-			const user = await usersService.create(values)
-
-			if (user) {
-				const loginResponse = await authService.login({ email: values.email })
-
-				if (loginResponse.success) {
-					router.push('/')
-				} else {
-					setApiError('Account created but login failed. Please try logging in.')
-				}
-			}
-		} catch (error: unknown) {
-			console.error('Signup error:', error)
-
-			if (error instanceof ApiError) {
-				setApiError(error.message)
-			} else {
-				setApiError('An error occurred during signup. Please try again.')
-			}
-		} finally {
-			setIsLoading(false)
-		}
+		createUser(values, {
+			onSuccess: () => {
+				login(
+					{ email: values.email },
+					{
+						onSuccess: () => {
+							router.push('/')
+						},
+						onError: ({ response }) => {
+							if (response?.data.message) setApiError(response.data.message)
+						},
+					},
+				)
+			},
+			onError: ({ response }) => {
+				if (response?.data.message) setApiError(response.data.message)
+			},
+		})
 	}
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+				<div className="flex flex-col items-center gap-2 text-center">
+					<h1 className="font-bold text-2xl">Create your account</h1>
+					<p className="text-balance text-muted-foreground text-sm">
+						Enter your details to get started with Taskion
+					</p>
+				</div>
+
 				{apiError && (
 					<Alert variant="destructive">
 						<AlertDescription>{apiError}</AlertDescription>
@@ -118,8 +116,8 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
 					)}
 				/>
 
-				<Button type="submit" className="w-full" disabled={isLoading}>
-					{isLoading ? (
+				<Button type="submit" className="w-full" disabled={isPending}>
+					{isPending ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							Creating account...
@@ -130,15 +128,15 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
 				</Button>
 
 				<div className="text-center">
-					<Button
-						type="button"
-						variant="ghost"
-						onClick={onSwitchToLogin}
-						className="text-muted-foreground text-sm"
-						disabled={isLoading}
-					>
-						Already have an account? Sign in
-					</Button>
+					<div className="text-center text-sm">
+						Already have an account?{' '}
+						<Link
+							href="/login"
+							className="px-0 font-medium text-primary underline underline-offset-4"
+						>
+							Sign in
+						</Link>
+					</div>
 				</div>
 			</form>
 		</Form>

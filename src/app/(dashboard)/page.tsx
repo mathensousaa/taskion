@@ -16,9 +16,9 @@ export default function HomePage() {
 		<PageRoot>
 			<PageHeader>
 				<SidebarTrigger />
-				<PageTitle>Tasks</PageTitle>
+				<PageTitle>Home</PageTitle>
 			</PageHeader>
-			<PageContent>
+			<PageContent className="p-6">
 				<div className="space-y-6">
 					{/* Search and Quick Create Section */}
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

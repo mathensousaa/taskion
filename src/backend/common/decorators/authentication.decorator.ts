@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { container } from 'tsyringe'
 import { z } from 'zod'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
+import { NotFoundError } from '@/backend/common/errors/not-found-error'
 import { UnauthorizedError } from '@/backend/common/errors/unauthorized-error'
 import type { IUserRepository } from '@/backend/users/repository/user.repository'
 import type { User } from '@/modules'
@@ -133,7 +134,7 @@ async function validateAndFetchUserFromBody(request: Request): Promise<User> {
 		const user = await userRepository.findById(user_id)
 
 		if (!user) {
-			throw new UnauthorizedError('User not found with provided user_id')
+			throw new NotFoundError('User not found with provided user_id')
 		}
 
 		// Restore request body for controller access

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { authService } from '@/modules/auth/services/auth.service'
+import { useCheckAuth, useLogin, useLogout } from '@/modules'
 
 interface User {
 	id: string
@@ -17,74 +17,99 @@ interface AuthState {
 }
 
 export function useAuth() {
-	const router = useRouter()
 	const [authState, setAuthState] = useState<AuthState>({
 		user: null,
 		isLoading: true,
 		isAuthenticated: false,
 	})
 
-	const checkAuth = useCallback(async () => {
-		try {
-			setAuthState((prev) => ({ ...prev, isLoading: true }))
-			const response = await authService.me()
+	const router = useRouter()
+	const { mutate: loginUser } = useLogin()
+	const { mutate: logoutUser } = useLogout()
+	const { mutate: checkAuthUser } = useCheckAuth()
 
-			if (response.success && response.data) {
-				setAuthState({
-					user: response.data,
-					isLoading: false,
-					isAuthenticated: true,
-				})
-			} else {
-				setAuthState({
-					user: null,
-					isLoading: false,
-					isAuthenticated: false,
-				})
-			}
-		} catch (error) {
-			console.error('Auth check failed:', error)
-			setAuthState({
-				user: null,
-				isLoading: false,
-				isAuthenticated: false,
-			})
-		}
-	}, [])
+	const checkAuth = useCallback(() => {
+		setAuthState((prev) => ({ ...prev, isLoading: true }))
+		checkAuthUser(
+			{},
+			{
+				onSuccess: ({ data: user }) => {
+					console.log('user', user)
+					if (user) {
+						setAuthState({
+							user,
+							isLoading: false,
+							isAuthenticated: true,
+						})
+					}
+				},
+				onError: (error) => {
+					console.error('Auth check failed:', error)
+					setAuthState({
+						user: null,
+						isLoading: false,
+						isAuthenticated: false,
+					})
+				},
+			},
+		)
+	}, [checkAuthUser])
 
-	const login = useCallback(async (email: string) => {
-		try {
-			const response = await authService.login({ email })
+	const login = useCallback(
+		(email: string) => {
+			loginUser(
+				{ email },
+				{
+					onSuccess: ({ data: user }) => {
+						if (user) {
+							setAuthState({
+								user,
+								isLoading: false,
+								isAuthenticated: true,
+							})
+						}
 
-			if (response.success && response.data) {
-				setAuthState({
-					user: response.data,
-					isLoading: false,
-					isAuthenticated: true,
-				})
-				return { success: true }
-			} else {
-				return { success: false, message: response.message }
-			}
-		} catch (error) {
-			console.error('Login failed:', error)
-			return { success: false, message: 'Login failed' }
-		}
-	}, [])
+						return { success: false, message: 'Login failed' }
+					},
+					onError: (error) => {
+						console.error('Login failed:', error)
+						setAuthState({
+							user: null,
+							isLoading: false,
+							isAuthenticated: false,
+						})
+					},
+				},
+			)
+		},
+		[loginUser],
+	)
 
-	const logout = useCallback(async () => {
-		try {
-			await authService.logout()
-			setAuthState({
-				user: null,
-				isLoading: false,
-				isAuthenticated: false,
-			})
-			router.push('/login')
-		} catch (error) {
-			console.error('Logout failed:', error)
-		}
-	}, [router])
+	const logout = useCallback(() => {
+		logoutUser(
+			{},
+			{
+				onSuccess: () => {
+					console.log('logout successful')
+					setAuthState({
+						user: null,
+						isLoading: false,
+						isAuthenticated: false,
+					})
+					router.push('/login')
+				},
+				onError: (error) => {
+					console.error('Logout failed:', error)
+					setAuthState({
+						user: null,
+						isLoading: false,
+						isAuthenticated: false,
+					})
+					router.push('/login')
+				},
+			},
+		)
+	}, [logoutUser, router])
 
 	useEffect(() => {
 		checkAuth()
