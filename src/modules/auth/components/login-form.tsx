@@ -2,11 +2,11 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertCircle, Loader2, Mail } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { ApiError } from '@/backend/common/errors/api-error'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +18,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { authService } from '@/modules/auth/services/auth.service'
+import { useLogin } from '@/modules/auth/services'
 
 const LoginSchema = z.object({
 	email: z.email('Please enter a valid email address'),
@@ -26,15 +26,11 @@ const LoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof LoginSchema>
 
-interface LoginFormProps {
-	onSwitchToSignup: () => void
-}
-
-export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
+export function LoginForm() {
 	const router = useRouter()
-	const [isLoading, setIsLoading] = useState(false)
-	const [apiError, setApiError] = useState<string>('')
 
+	const [apiError, setApiError] = useState<string>('')
+	const { mutate: login, isPending } = useLogin()
 	const form = useForm<LoginFormData>({
 		resolver: zodResolver(LoginSchema),
 		defaultValues: {
@@ -42,34 +38,29 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 		},
 	})
 
-	const onSubmit = async (credentials: LoginFormData) => {
+	const onSubmit = (credentials: LoginFormData) => {
 		setApiError('')
 
-		try {
-			setIsLoading(true)
-			const response = await authService.login(credentials)
-
-			if (response.success) {
+		login(credentials, {
+			onSuccess: () => {
 				router.push('/')
-			} else {
-				setApiError(response.message || 'Login failed. Please try again.')
-			}
-		} catch (error: unknown) {
-			console.error('Login error:', error)
-
-			if (error instanceof ApiError) {
-				setApiError(error.message)
-			} else {
-				setApiError('An error occurred during login. Please try again.')
-			}
-		} finally {
-			setIsLoading(false)
-		}
+			},
+			onError: ({ response }) => {
+				if (response?.data.message) setApiError(response.data.message)
+			},
+		})
 	}
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+				<div className="flex flex-col items-center gap-2 text-center">
+					<h1 className="font-bold text-2xl">Login to your account</h1>
+					<p className="text-balance text-muted-foreground text-sm">
+						Enter your email below to login to your account
+					</p>
+				</div>
+
 				{apiError && (
 					<Alert variant="destructive" className="text-center">
 						<AlertCircle className="h-4 w-4" />
@@ -94,8 +85,8 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 					)}
 				/>
 
-				<Button type="submit" className="w-full" disabled={isLoading}>
-					{isLoading ? (
+				<Button type="submit" className="w-full" disabled={isPending}>
+					{isPending ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							Signing in...
@@ -106,15 +97,15 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 				</Button>
 
 				<div className="text-center">
-					<Button
-						type="button"
-						variant="ghost"
-						onClick={onSwitchToSignup}
-						className="text-muted-foreground text-sm"
-						disabled={isLoading}
-					>
-						Don't have an account? Register
-					</Button>
+					<div className="text-center text-sm">
+						Don&apos;t have an account?{' '}
+						<Link
+							href="/register"
+							className="px-0 font-medium text-primary underline underline-offset-4"
+						>
+							Sign up
+						</Link>
+					</div>
 				</div>
 			</form>
 		</Form>

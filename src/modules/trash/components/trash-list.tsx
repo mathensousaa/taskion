@@ -1,67 +1,56 @@
 'use client'
 
 import { Loader2, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { Task } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
-import { parseResponseData } from '@/lib/utils'
-import { trashService } from '@/modules/trash/services/trash.service'
+import {
+	useEmptyTrash,
+	useListTrash,
+	usePermanentlyDeleteTask,
+} from '@/modules/trash/services/trash.service'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { EmptyTrashDialog } from './empty-trash-dialog'
 import { EmptyTrashState } from './empty-trash-state'
 import { TrashTaskCard } from './trash-task-card'
 
 export function TrashList() {
-	const [tasks, setTasks] = useState<Task[]>([])
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
 	const [deleteTaskDialog, setDeleteTaskDialog] = useState<{
 		open: boolean
 		task: Task | null
 	}>({ open: false, task: null })
 	const [emptyTrashDialog, setEmptyTrashDialog] = useState(false)
-	const [isDeletingTask, setIsDeletingTask] = useState(false)
-	const [isEmptyingTrash, setIsEmptyingTrash] = useState(false)
+	const { data: tasks, status, error, refetch } = useListTrash()
+	const { mutate: permanentlyDeleteTask, isPending: isDeletingTask } = usePermanentlyDeleteTask()
+	const { mutate: emptyTrash, isPending: isEmptyingTrash } = useEmptyTrash()
 
-	const loadTrash = useCallback(async () => {
-		setIsLoading(true)
-		setError(null)
-
-		try {
-			const response = await trashService.getTrash()
-			if (response) {
-				setTasks(parseResponseData(response))
-			}
-		} catch (error: any) {
-			console.error('Failed to load trash:', error)
-			setError('Failed to load trash. Please try again.')
-		} finally {
-			setIsLoading(false)
-		}
-	}, [])
-
-	// Load initial trash
-	useEffect(() => {
-		loadTrash()
-	}, [loadTrash])
-
-	const handlePermanentlyDeleteTask = useCallback((taskId: string) => {
-		setTasks((prev) => prev.filter((task) => task.id !== taskId))
-		setDeleteTaskDialog({ open: false, task: null })
-	}, [])
+	const handlePermanentlyDeleteTask = useCallback(
+		(taskId: string) => {
+			permanentlyDeleteTask(taskId, {
+				onSuccess: () => {
+					setDeleteTaskDialog({ open: false, task: null })
+				},
+				onError: (error) => {
+					console.error('Failed to permanently delete task:', error)
+				},
+			})
+		},
+		[permanentlyDeleteTask],
+	)
 
 	const handleEmptyTrash = useCallback(async () => {
-		setIsEmptyingTrash(true)
-		try {
-			await trashService.emptyTrash()
-			setTasks([])
-			setEmptyTrashDialog(false)
-		} catch (error) {
-			console.error('Failed to empty trash:', error)
-		} finally {
-			setIsEmptyingTrash(false)
-		}
-	}, [])
+		emptyTrash(
+			{},
+			{
+				onSuccess: () => {
+					setEmptyTrashDialog(false)
+				},
+				onError: (error) => {
+					console.error('Failed to empty trash:', error)
+				},
+			},
+		)
+	}, [emptyTrash])
 
 	const openDeleteTaskDialog = useCallback((task: Task) => {
 		setDeleteTaskDialog({ open: true, task })
@@ -79,7 +68,7 @@ export function TrashList() {
 		setEmptyTrashDialog(false)
 	}, [])
 
-	if (isLoading) {
+	if (status === 'pending') {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="flex items-center gap-2 text-muted-foreground">
@@ -90,15 +79,17 @@ export function TrashList() {
 		)
 	}
 
-	if (error) {
+	if (status === 'error') {
 		return (
 			<div className="flex flex-col items-center justify-center py-12 text-center">
 				<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
 					<Trash2 className="h-10 w-10 text-muted-foreground" />
 				</div>
 				<h3 className="mt-4 font-semibold text-lg">Failed to load trash</h3>
-				<p className="mt-2 text-muted-foreground">{error}</p>
-				<Button onClick={loadTrash} className="mt-4">
+				{error?.response?.data?.message && (
+					<p className="mt-2 text-muted-foreground"> {error.response.data.message}</p>
+				)}
+				<Button onClick={() => refetch()} className="mt-4">
 					Try Again
 				</Button>
 			</div>

@@ -12,13 +12,11 @@ import { parseResponseData } from '@/lib/utils'
 export const taskStatusService = {
 	// List task statuses - use force-cache for semi-static data
 	async list() {
-		return apiClient.request<TaskStatus[]>(
-			'/task-status',
-			{
+		return apiClient
+			.request<ApiResponse<TaskStatus[]>>('/task-status', {
 				cache: 'force-cache',
-			},
-			z.array(TaskStatusSchema),
-		)
+			})
+			.then(parseResponseData<TaskStatus[]>)
 	},
 
 	// Get task status by ID - use force-cache for individual statuses

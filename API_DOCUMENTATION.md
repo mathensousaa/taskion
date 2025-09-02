@@ -79,6 +79,20 @@ The Tasks module handles all task-related operations including creation, retriev
   - `id`: Task UUID
 - **Response:** Success confirmation
 
+##### Toggle Task Status
+- **Method:** `PATCH`
+- **URL:** `/tasks/:id/toggle-status`
+- **Description:** Toggles task status between 'not_started' and 'done'
+- **Authentication:** Required
+- **URL Parameters:**
+  - `id`: Task UUID
+- **Request Body:** None
+- **Response:** Updated task object with new status
+- **Behavior:**
+  - If task status is 'not_started' → changes to 'done'
+  - If task status is 'done' → changes to 'not_started'
+  - If task status is any other value → changes to 'done'
+
 ##### Reorder Tasks
 - **Method:** `PATCH`
 - **URL:** `/tasks`

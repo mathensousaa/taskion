@@ -1,55 +1,85 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Plus } from 'lucide-react'
-import { useCallback, useState, useTransition } from 'react'
-import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
+import { useCallback, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+import type { Task, TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { tasksService } from '@/modules/tasks/services/tasks.service'
+import { useCreateTask } from '@/modules/tasks/services'
+
+const QuickCreateTaskSchema = z.object({
+	title: z
+		.string()
+		.min(1, 'Title is required.')
+		.refine((title) => title.trim().split(/\s+/).length >= 3, {
+			message: 'Please provide more details. Enter at least 3 words.',
+		}),
+})
+
+type QuickCreateTaskFormData = z.infer<typeof QuickCreateTaskSchema>
 
 interface QuickCreateTaskProps {
-	onTaskCreated: (task: any) => void
+	onTaskCreated: (task: Task) => void
 	className?: string
 }
 
 export function QuickCreateTask({ onTaskCreated, className }: QuickCreateTaskProps) {
 	const [isExpanded, setIsExpanded] = useState(false)
-	const [title, setTitle] = useState('')
-	const [isPending, startTransition] = useTransition()
 
-	const handleCreate = useCallback(async () => {
-		if (!title.trim()) return
+	const form = useForm<QuickCreateTaskFormData>({
+		resolver: zodResolver(QuickCreateTaskSchema),
+		defaultValues: {
+			title: '',
+		},
+	})
 
-		startTransition(async () => {
-			try {
-				const taskData: TaskCreationInput = {
-					title: title.trim(),
-				}
+	const { mutate: createTask, isPending } = useCreateTask({
+		onSuccess: (newTask) => {
+			onTaskCreated(newTask)
+			form.reset()
+			setIsExpanded(false)
+			toast('Success!', {
+				description: (
+					<span>
+						Task <strong>"{newTask.title}"</strong> created.
+					</span>
+				),
+			})
+		},
+		onError: (error) => {
+			toast.error('Error creating task', {
+				description: error.message,
+			})
+		},
+	})
 
-				const response = await tasksService.create(taskData)
-				if (response) {
-					onTaskCreated(response)
-					setTitle('')
-					setIsExpanded(false)
-				}
-			} catch (error) {
-				console.error('Failed to create task:', error)
+	const handleCreate = useCallback(
+		(values: QuickCreateTaskFormData) => {
+			const taskData: TaskCreationInput = {
+				title: values.title.trim(),
 			}
-		})
-	}, [title, onTaskCreated])
+			createTask(taskData)
+		},
+		[createTask],
+	)
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
 			if (e.key === 'Enter') {
 				e.preventDefault()
-				handleCreate()
+				form.handleSubmit(handleCreate)()
 			} else if (e.key === 'Escape') {
 				setIsExpanded(false)
-				setTitle('')
+				form.reset()
 			}
 		},
-		[handleCreate],
+		[form, handleCreate],
 	)
 
 	const handleFocus = useCallback(() => {
@@ -57,13 +87,13 @@ export function QuickCreateTask({ onTaskCreated, className }: QuickCreateTaskPro
 	}, [])
 
 	const handleBlur = useCallback(() => {
-		// Delay hiding to allow button clicks
+		// Delay hiding to allow button clicks.
 		setTimeout(() => {
-			if (!title.trim()) {
+			if (!form.getValues('title').trim()) {
 				setIsExpanded(false)
 			}
 		}, 150)
-	}, [title])
+	}, [form])
 
 	if (!isExpanded) {
 		return (
@@ -77,32 +107,42 @@ export function QuickCreateTask({ onTaskCreated, className }: QuickCreateTaskPro
 				)}
 			>
 				<Plus className="h-4 w-4" />
-				Quick add task
+				Add task
 			</Button>
 		)
 	}
 
 	return (
-		<div className={cn('flex items-center gap-2', className)}>
-			<Input
-				value={title}
-				onChange={(e) => setTitle(e.target.value)}
-				onKeyDown={handleKeyDown}
-				onFocus={handleFocus}
-				onBlur={handleBlur}
-				placeholder="Task title..."
-				className="h-9 min-w-[200px]"
-				autoFocus
-				disabled={isPending}
-			/>
-			<Button
-				onClick={handleCreate}
-				size="sm"
-				disabled={!title.trim() || isPending}
-				className="h-9 px-3"
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(handleCreate)}
+				className={cn('flex items-center gap-2', className)}
 			>
-				{isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
-			</Button>
-		</div>
+				<FormField
+					control={form.control}
+					name="title"
+					render={({ field }) => (
+						<FormItem className="flex-1">
+							<FormControl>
+								<Input
+									{...field}
+									onKeyDown={handleKeyDown}
+									onFocus={handleFocus}
+									onBlur={handleBlur}
+									placeholder="Enter at least 3 words for task title"
+									className="h-9 min-w-[200px]"
+									autoFocus
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage className="text-xs" />
+						</FormItem>
+					)}
+				/>
+				<Button type="submit" size="sm" disabled={isPending} className="h-9 px-3">
+					{isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+				</Button>
+			</form>
+		</Form>
 	)
 }

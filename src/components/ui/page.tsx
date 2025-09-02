@@ -18,10 +18,7 @@ const PageHeader = forwardRef<HTMLElement, HTMLAttributes<HTMLElement>>(
 	({ className, ...props }, ref) => (
 		<header
 			ref={ref}
-			className={cn(
-				'flex w-full flex-col justify-start gap-2 px-3 py-2 md:flex-row md:items-center',
-				className,
-			)}
+			className={cn('flex w-full flex-row items-center justify-start gap-2 px-3 py-2', className)}
 			{...props}
 		/>
 	),
@@ -47,7 +44,7 @@ const PageContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
 	({ className, ...props }, ref) => (
 		<div
 			ref={ref}
-			className={cn('inset-x-0 mx-auto flex w-full max-w-3xl flex-col gap-4', className)}
+			className={cn('inset-x-0 mx-auto flex w-full max-w-3xl flex-col gap-4 p-2 md:p-6', className)}
 			{...props}
 		/>
 	),

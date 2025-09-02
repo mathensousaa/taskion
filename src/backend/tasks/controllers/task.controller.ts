@@ -163,4 +163,24 @@ export class TaskController {
 			return ErrorHandler.handle(error, 'TaskController.enhance')
 		}
 	}
+
+	@IsAuthenticated()
+	async toggleStatus(req: Request, id: string) {
+		try {
+			const validatedId = validateIdParam(id)
+
+			const task = await this.service.toggleTaskStatus(validatedId, req.user!)
+
+			return NextResponse.json(
+				{
+					success: true,
+					message: 'Task status successfully toggled',
+					data: task,
+				},
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TaskController.toggleStatus')
+		}
+	}
 }
