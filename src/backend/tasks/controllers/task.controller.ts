@@ -82,7 +82,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated({ allowApiKey: true })
+	@IsAuthenticated({ allowApiKeyWithUserId: true })
 	async update(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)
@@ -138,7 +138,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated({ allowApiKey: true })
+	@IsAuthenticated({ allowApiKeyWithUserId: true })
 	async enhance(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)

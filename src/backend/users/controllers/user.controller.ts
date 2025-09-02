@@ -63,8 +63,8 @@ export class UserController {
 		}
 	}
 
-	@IsAuthenticated({ allowApiKey: true })
-	async getByEmail(email: string) {
+	@IsAuthenticated({ allowApiKeyOnly: true })
+	async getByEmail(email: string, _req: Request) {
 		try {
 			const emailSchema = z.email()
 			const validatedEmail = emailSchema.parse(email)
