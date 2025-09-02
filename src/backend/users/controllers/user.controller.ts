@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { inject, injectable } from 'tsyringe'
+import { z } from 'zod'
 import { IsAuthenticated } from '@/backend/common/decorators'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
 import { validateIdParam } from '@/backend/common/validation/common.schema'
 import { UserService } from '@/backend/users/services/user.service'
-import type { User } from '@/backend/users/validation/user.schema'
 import { UserCreationSchema, UserUpdateSchema } from '@/backend/users/validation/user.schema'
 
 @injectable()
@@ -60,6 +60,27 @@ export class UserController {
 			)
 		} catch (error) {
 			return ErrorHandler.handle(error, 'UserController.getById')
+		}
+	}
+
+	@IsAuthenticated({ allowApiKey: true })
+	async getByEmail(email: string) {
+		try {
+			const emailSchema = z.email()
+			const validatedEmail = emailSchema.parse(email)
+
+			const user = await this.service.getUserByEmail(validatedEmail)
+
+			if (!user) {
+				return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+			}
+
+			return NextResponse.json(
+				{ success: true, message: 'User retrieved successfully', data: user },
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'UserController.getByEmail')
 		}
 	}
 
