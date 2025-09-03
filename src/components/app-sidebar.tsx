@@ -84,6 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 
 import type { LucideIcon } from 'lucide-react'
+import Link from 'next/link'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
@@ -206,10 +207,10 @@ export function NavMain({
 				return (
 					<SidebarMenuItem key={item.title}>
 						<SidebarMenuButton asChild isActive={isActive}>
-							<a href={item.url}>
+							<Link href={item.url}>
 								<item.icon />
 								<span>{item.title}</span>
-							</a>
+							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				)
@@ -236,10 +237,10 @@ export function NavSecondary({
 					{items.map((item) => (
 						<SidebarMenuItem key={item.title}>
 							<SidebarMenuButton asChild>
-								<a href={item.url}>
+								<Link href={item.url}>
 									<item.icon />
 									<span>{item.title}</span>
-								</a>
+								</Link>
 							</SidebarMenuButton>
 							{item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
 						</SidebarMenuItem>
