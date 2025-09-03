@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
 	const hasSession = request.cookies.has('session')
 
 	// Public routes that don't require authentication
-	const publicRoutes = ['/login', '/api/login', '/api/users', '/register']
+	const publicRoutes = ['/login', '/register', '/api/login', '/api/users']
 
 	// Check if current route is public
 	const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
@@ -21,8 +21,8 @@ export function middleware(request: NextRequest) {
 		return NextResponse.redirect(loginUrl)
 	}
 
-	// If user is authenticated and trying to access login page, redirect to home
-	if (pathname === '/login' && hasSession) {
+	// If user is authenticated and trying to access login or register page, redirect to home
+	if ((pathname === '/login' || pathname === '/register') && hasSession) {
 		return NextResponse.redirect(new URL('/', request.url))
 	}
 

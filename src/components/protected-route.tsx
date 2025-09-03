@@ -16,7 +16,11 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
 
 	useEffect(() => {
 		if (!isLoading && !isAuthenticated) {
-			router.push('/login')
+			// Get current pathname for redirect
+			const currentPath = window.location.pathname
+			const redirectUrl =
+				currentPath === '/' ? '/login' : `/login?redirect=${encodeURIComponent(currentPath)}`
+			router.push(redirectUrl)
 		}
 	}, [isAuthenticated, isLoading, router])
 

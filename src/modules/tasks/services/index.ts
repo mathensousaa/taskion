@@ -144,3 +144,18 @@ export const useToggleTaskStatus = (
 		},
 		...options,
 	})
+
+export const useEnhanceTask = (
+	id: string,
+	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, void>,
+) =>
+	useMutation({
+		mutationFn: () => api.post(`/tasks/${id}/enhance`).then(parseResponseData<Task>),
+		onSuccess: (data) => {
+			queryClient.setQueryData(keyGetTaskById(id), data)
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
+		...options,
+	})

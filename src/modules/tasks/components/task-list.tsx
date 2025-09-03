@@ -66,7 +66,7 @@ export function TaskList({ status }: TaskListProps) {
 							>
 								<div className="space-y-3">
 									{tasks?.map((task) => (
-										<SortableTaskCard key={task.id} task={task} />
+										<SortableTaskCard key={task.id} task={task} onTaskClick={setSelectedTaskId} />
 									))}
 								</div>
 							</SortableContext>

@@ -13,7 +13,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn, truncateToWords } from '@/lib/utils'
-import { usePermanentlyDeleteTask, useRestoreTask } from '@/modules/trash/services'
+import { useRestoreTask } from '@/modules/trash/services'
 
 interface TrashTaskCardProps {
 	task: Task
@@ -28,18 +28,10 @@ export function TrashTaskCard({
 	onRestore,
 	className,
 }: TrashTaskCardProps) {
-	const { mutate: permanentlyDeleteTask, isPending: isDeleting } = usePermanentlyDeleteTask()
 	const { mutate: restoreTask, isPending: isRestoring } = useRestoreTask()
 
-	const handlePermanentlyDelete = async () => {
-		permanentlyDeleteTask(task.id, {
-			onSuccess: () => {
-				onPermanentlyDelete(task.id)
-			},
-			onError: (error) => {
-				console.error('Failed to permanently delete task:', error)
-			},
-		})
+	const handlePermanentlyDelete = () => {
+		onPermanentlyDelete(task.id)
 	}
 
 	const handleRestore = async () => {
@@ -125,19 +117,9 @@ export function TrashTaskCard({
 						<DropdownMenuItem
 							onClick={handlePermanentlyDelete}
 							className="text-destructive focus:text-destructive"
-							disabled={isDeleting}
 						>
-							{isDeleting ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Deleting...
-								</>
-							) : (
-								<>
-									<Trash2 className="mr-2 h-4 w-4" />
-									Permanently Delete
-								</>
-							)}
+							<Trash2 className="mr-2 h-4 w-4" />
+							Permanently Delete
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

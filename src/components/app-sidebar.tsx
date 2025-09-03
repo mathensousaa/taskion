@@ -1,9 +1,7 @@
 'use client'
 
 import {
-	AudioWaveform,
 	ChevronDown,
-	Command,
 	Home,
 	ListTodo,
 	LogOut,
@@ -13,7 +11,9 @@ import {
 	Trash2,
 	User,
 } from 'lucide-react'
-import type * as React from 'react'
+import { usePathname } from 'next/navigation'
+import * as React from 'react'
+import { toast } from 'sonner'
 // import { NavFavorites } from "@/components/nav-favorites"
 // import { NavSecondary } from "@/components/nav-secondary"
 // import { NavWorkspaces } from "@/components/nav-workspaces"
@@ -29,6 +29,7 @@ import {
 	sidebarMenuButtonVariants,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/hooks/use-auth'
+import { useCreateTask } from '@/modules/tasks/services'
 
 const data = {
 	navMain: [
@@ -46,7 +47,6 @@ const data = {
 			title: 'Home',
 			url: '/',
 			icon: Home,
-			isActive: true,
 		},
 		{
 			title: 'Trash',
@@ -58,11 +58,18 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const [searchDialogOpen, setSearchDialogOpen] = React.useState(false)
+	const [addTaskDialogOpen, setAddTaskDialogOpen] = React.useState(false)
+
 	return (
 		<Sidebar className="border-r-0" {...props}>
 			<SidebarHeader>
 				<NavLogo />
-				<NavMain items={data.navMain} />
+				<NavMain
+					items={data.navMain}
+					onSearchClickAction={() => setSearchDialogOpen(true)}
+					onAddTaskClickAction={() => setAddTaskDialogOpen(true)}
+				/>
 			</SidebarHeader>
 			<SidebarContent>
 				{/* <NavFavorites favorites={data.favorites} /> */}
@@ -70,13 +77,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarRail />
+			<TaskSearchDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen} />
+			<AddTaskDialog open={addTaskDialogOpen} onOpenChange={setAddTaskDialogOpen} />
 		</Sidebar>
 	)
 }
 
 import type { LucideIcon } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -88,6 +97,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { NewTaskCard } from '@/modules/tasks/components/new-task-card'
+import { TaskSearchDialog } from '@/modules/tasks/components/task-search-dialog'
 
 export function NavLogo() {
 	const { logout, user } = useAuth()
@@ -142,6 +152,8 @@ export function NavLogo() {
 
 export function NavMain({
 	items,
+	onSearchClickAction,
+	onAddTaskClickAction,
 }: {
 	items: {
 		title: string
@@ -149,34 +161,59 @@ export function NavMain({
 		icon: LucideIcon
 		isActive?: boolean
 	}[]
+	onSearchClickAction?: () => void
+	onAddTaskClickAction?: () => void
 }) {
+	const pathname = usePathname()
+
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
 				<SidebarMenuButton asChild className="text-primary">
-					<Dialog>
-						<DialogTrigger className={cn(sidebarMenuButtonVariants())}>
-							<div className="rounded-full bg-primary p-0.5 text-primary-foreground">
-								<Plus className="size-4" />
-							</div>
-							Add task
-						</DialogTrigger>
-						<DialogContent className="p-0">
-							<NewTaskCard onSubmit={async () => {}} onCancel={() => {}} />
-						</DialogContent>
-					</Dialog>
+					<button
+						type="button"
+						className={cn(sidebarMenuButtonVariants())}
+						onClick={onAddTaskClickAction}
+					>
+						<div className="rounded-full bg-primary p-0.5 text-primary-foreground">
+							<Plus className="size-4" />
+						</div>
+						Add task
+					</button>
 				</SidebarMenuButton>
 			</SidebarMenuItem>
-			{items.map((item) => (
-				<SidebarMenuItem key={item.title}>
-					<SidebarMenuButton asChild isActive={item.isActive}>
-						<a href={item.url}>
-							<item.icon />
-							<span>{item.title}</span>
-						</a>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-			))}
+			{items.map((item) => {
+				// Skip active state for items with placeholder URLs like '#'
+				const isActive = item.url !== '#' && pathname === item.url
+
+				// Handle Search button click
+				if (item.title === 'Search' && item.url === '#') {
+					return (
+						<SidebarMenuItem key={item.title}>
+							<SidebarMenuButton asChild isActive={isActive} onClick={onSearchClickAction}>
+								<button type="button" className="w-full">
+									<item.icon />
+									<span>{item.title}</span>
+									<kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-[10px] text-muted-foreground opacity-100">
+										<span className="text-xs">⌘</span>K
+									</kbd>
+								</button>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+					)
+				}
+
+				return (
+					<SidebarMenuItem key={item.title}>
+						<SidebarMenuButton asChild isActive={isActive}>
+							<a href={item.url}>
+								<item.icon />
+								<span>{item.title}</span>
+							</a>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				)
+			})}
 		</SidebarMenu>
 	)
 }
@@ -215,5 +252,47 @@ export function NavSecondary({
 				</SidebarMenu>
 			</SidebarGroupContent>
 		</SidebarGroup>
+	)
+}
+
+function AddTaskDialog({
+	open,
+	onOpenChange,
+}: {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}) {
+	const { mutate: createTask, isPending } = useCreateTask()
+
+	const handleSubmit = async (data: { title: string }) => {
+		createTask(data, {
+			onSuccess: (newTask) => {
+				onOpenChange(false)
+				toast('Success!', {
+					description: (
+						<span>
+							Task <strong>"{newTask.title}"</strong> created.
+						</span>
+					),
+				})
+			},
+			onError: (error) => {
+				toast.error('Error creating task', {
+					description: error.message,
+				})
+			},
+		})
+	}
+
+	const handleCancel = () => {
+		onOpenChange(false)
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="p-0">
+				<NewTaskCard onSubmit={handleSubmit} onCancel={handleCancel} isSubmitting={isPending} />
+			</DialogContent>
+		</Dialog>
 	)
 }

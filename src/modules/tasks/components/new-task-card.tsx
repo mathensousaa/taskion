@@ -28,10 +28,20 @@ type NewTaskFormData = z.infer<typeof NewTaskSchema>
 interface NewTaskCardProps {
 	onSubmit: (data: TaskCreationInput) => Promise<void>
 	onCancel: () => void
+	onRetry?: () => void
 	isSubmitting?: boolean
+	hasError?: boolean
+	errorMessage?: string
 }
 
-export function NewTaskCard({ onSubmit, onCancel, isSubmitting = false }: NewTaskCardProps) {
+export function NewTaskCard({
+	onSubmit,
+	onCancel,
+	onRetry,
+	isSubmitting = false,
+	hasError = false,
+	errorMessage,
+}: NewTaskCardProps) {
 	const titleInputRef = useRef<HTMLInputElement>(null)
 	const formRef = useRef<HTMLFormElement>(null)
 
@@ -127,10 +137,35 @@ export function NewTaskCard({ onSubmit, onCancel, isSubmitting = false }: NewTas
 							<div className="space-y-2">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm">
 									<Loader2 className="h-4 w-4 animate-spin" />
-									AI is enhancing your task description...
+									Creating your task...
 								</div>
-								<Skeleton className="h-4 w-3/4" />
-								<Skeleton className="h-4 w-1/2" />
+								<div className="space-y-1">
+									<Skeleton className="h-3 w-2/3" />
+									<Skeleton className="h-3 w-1/2" />
+								</div>
+							</div>
+						)}
+
+						{/* Error State */}
+						{hasError && (
+							<div className="space-y-2">
+								<div className="flex items-center gap-2 text-destructive text-sm">
+									<svg
+										className="h-4 w-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+										/>
+									</svg>
+									{errorMessage || 'Failed to create task'}
+								</div>
 							</div>
 						)}
 					</div>
@@ -147,9 +182,22 @@ export function NewTaskCard({ onSubmit, onCancel, isSubmitting = false }: NewTas
 					>
 						Cancel
 					</Button>
-					<Button type="submit" size="sm" disabled={isSubmitting} className="h-8 px-3">
-						Create Task
-					</Button>
+					{hasError && onRetry ? (
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={onRetry}
+							disabled={isSubmitting}
+							className="h-8 px-3"
+						>
+							Retry
+						</Button>
+					) : (
+						<Button type="submit" size="sm" disabled={isSubmitting} className="h-8 px-3">
+							Create Task
+						</Button>
+					)}
 				</div>
 			</form>
 		</Form>

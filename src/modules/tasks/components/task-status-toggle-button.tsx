@@ -9,11 +9,13 @@ interface TaskStatusToggleButtonProps {
 	taskId: string
 	taskStatusId: string | undefined
 	onStatusChange?: () => void
+	size?: 'md' | 'lg'
 }
 
 export default function TaskStatusToggleButton({
 	taskId,
 	taskStatusId,
+	size = 'md',
 }: TaskStatusToggleButtonProps) {
 	const { data: taskStatus } = useGetTaskStatusById(taskStatusId)
 	const { mutate: toggleStatus, isPending } = useToggleTaskStatus(taskId)
@@ -31,19 +33,24 @@ export default function TaskStatusToggleButton({
 		}
 	}, [])
 
-	const handleClick = useCallback(() => {
-		if (!taskStatusId || !taskId) return
+	const handleClick = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation()
 
-		const currentSlug = taskStatus?.slug
-		const newSlug = currentSlug === 'done' ? 'not-started' : 'done'
-		setOptimisticStatus(newSlug)
+			if (!taskStatusId || !taskId) return
 
-		if (currentSlug !== 'done') {
-			playFlopSound()
-		}
+			const currentSlug = taskStatus?.slug
+			const newSlug = currentSlug === 'done' ? 'not-started' : 'done'
+			setOptimisticStatus(newSlug)
 
-		toggleStatus()
-	}, [taskStatusId, taskId, taskStatus?.slug, playFlopSound, toggleStatus])
+			if (currentSlug !== 'done') {
+				playFlopSound()
+			}
+
+			toggleStatus()
+		},
+		[taskStatusId, taskId, taskStatus?.slug, playFlopSound, toggleStatus],
+	)
 
 	const displayStatus = optimisticStatus || taskStatus?.slug
 
@@ -54,12 +61,16 @@ export default function TaskStatusToggleButton({
 				'size-5 rounded-full text-muted-foreground',
 				displayStatus === 'done' && 'bg-green-500 text-primary-foreground hover:bg-green-500',
 				!taskStatusId && 'opacity-50',
+				size === 'md' && 'size-5',
+				size === 'lg' && 'size-8',
 			)}
-			size="icon"
+			size={size === 'md' ? 'icon' : 'lg'}
 			disabled={!taskStatusId || !taskId || isPending}
 			onClick={handleClick}
 		>
-			<Check className="size-3 stroke-4" />
+			<Check
+				className={cn('size-3 stroke-4', size === 'md' && 'size-3', size === 'lg' && 'size-4')}
+			/>
 		</Button>
 	)
 }
