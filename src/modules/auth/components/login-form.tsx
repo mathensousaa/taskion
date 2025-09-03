@@ -45,7 +45,9 @@ export function LoginForm() {
 		login(credentials, {
 			onSuccess: () => {
 				const redirectTo = searchParams.get('redirect') || '/'
-				router.push(redirectTo)
+				// Use window.location.href for a full page reload to ensure
+				// the middleware properly recognizes the new session cookie
+				window.location.href = redirectTo
 			},
 			onError: ({ response }) => {
 				if (response?.data.message) setApiError(response.data.message)
