@@ -2,7 +2,11 @@ import { inject, injectable } from 'tsyringe'
 import { NotFoundError } from '@/backend/common/errors/not-found-error'
 import { UnauthorizedError } from '@/backend/common/errors/unauthorized-error'
 import type { Paginated } from '@/backend/common/types'
-import type { PaginationQuery } from '@/backend/common/validation/common.schema'
+import type {
+	PaginationQuery,
+	TaskFilters,
+	TaskRepositoryFilters,
+} from '@/backend/common/validation/common.schema'
 import { TaskEnhancerService } from '@/backend/task-enhancer/services/task-enhancer.service'
 import { TaskStatusService } from '@/backend/task-status/services/task-status.service'
 import type { ITaskRepository } from '@/backend/tasks/repository/task.repository'
@@ -57,6 +61,47 @@ export class TaskService {
 	): Promise<Paginated<Task>> {
 		// Only return tasks belonging to the authenticated user with pagination
 		return await this.taskRepository.findAllByUserIdPaginated(authenticatedUser.id, pagination)
+	}
+
+	async getTasksWithFilters(authenticatedUser: User, filters: TaskFilters): Promise<Task[]> {
+		// Convert status slug to status_id if provided
+		let convertedFilters: TaskRepositoryFilters = {}
+		if (filters.status) {
+			const taskStatus = await this.taskStatusService.getTaskStatusBySlug(filters.status)
+			if (!taskStatus) {
+				throw new NotFoundError(`Task status with slug '${filters.status}' not found`)
+			}
+			convertedFilters = { status_id: taskStatus.id }
+		}
+
+		// Only return tasks belonging to the authenticated user with filters
+		return await this.taskRepository.findAllByUserIdWithFilters(
+			authenticatedUser.id,
+			convertedFilters,
+		)
+	}
+
+	async getTasksPaginatedWithFilters(
+		authenticatedUser: User,
+		pagination: PaginationQuery,
+		filters: TaskFilters,
+	): Promise<Paginated<Task>> {
+		// Convert status slug to status_id if provided
+		let convertedFilters: TaskRepositoryFilters = {}
+		if (filters.status) {
+			const taskStatus = await this.taskStatusService.getTaskStatusBySlug(filters.status)
+			if (!taskStatus) {
+				throw new NotFoundError(`Task status with slug '${filters.status}' not found`)
+			}
+			convertedFilters = { status_id: taskStatus.id }
+		}
+
+		// Only return tasks belonging to the authenticated user with pagination and filters
+		return await this.taskRepository.findAllByUserIdPaginatedWithFilters(
+			authenticatedUser.id,
+			pagination,
+			convertedFilters,
+		)
 	}
 
 	async getTaskById(id: string, authenticatedUser: User) {

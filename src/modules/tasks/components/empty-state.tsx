@@ -1,12 +1,7 @@
 import { CheckSquare } from 'lucide-react'
-import type { Task } from '@/backend/tasks/validation/task.schema'
 import { QuickCreateTask } from './quick-create-task'
 
-interface EmptyStateProps {
-	onTaskCreated: (task: Task) => void
-}
-
-export function EmptyState({ onTaskCreated }: EmptyStateProps) {
+export function EmptyState() {
 	return (
 		<div className="flex flex-col items-center justify-center py-16 text-center">
 			<div className="mb-6 rounded-full bg-muted p-4">
@@ -19,7 +14,7 @@ export function EmptyState({ onTaskCreated }: EmptyStateProps) {
 				however you like.
 			</p>
 
-			<QuickCreateTask onTaskCreated={onTaskCreated} />
+			<QuickCreateTask />
 
 			<div className="mt-8 text-muted-foreground text-sm">
 				<p>💡 Tip: Use the search bar above to find tasks quickly once you have some.</p>

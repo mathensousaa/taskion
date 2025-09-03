@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import type { Task, TaskCreationInput } from '@/backend/tasks/validation/task.schema'
+import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -25,11 +25,10 @@ const QuickCreateTaskSchema = z.object({
 type QuickCreateTaskFormData = z.infer<typeof QuickCreateTaskSchema>
 
 interface QuickCreateTaskProps {
-	onTaskCreated: (task: Task) => void
 	className?: string
 }
 
-export function QuickCreateTask({ onTaskCreated, className }: QuickCreateTaskProps) {
+export function QuickCreateTask({ className }: QuickCreateTaskProps) {
 	const [isExpanded, setIsExpanded] = useState(false)
 
 	const form = useForm<QuickCreateTaskFormData>({
@@ -41,7 +40,6 @@ export function QuickCreateTask({ onTaskCreated, className }: QuickCreateTaskPro
 
 	const { mutate: createTask, isPending } = useCreateTask({
 		onSuccess: (newTask) => {
-			onTaskCreated(newTask)
 			form.reset()
 			setIsExpanded(false)
 			toast('Success!', {

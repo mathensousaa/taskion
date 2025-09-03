@@ -16,7 +16,11 @@ import type {
 import { api } from '@/lib/axios'
 import { queryClient } from '@/lib/react-query'
 import { parseResponseData } from '@/lib/utils'
-import { keyGetTaskStatusById, keyListTaskStatuses } from '@/modules/task-status/services/keys'
+import {
+	keyGetTaskStatusById,
+	keyGetTaskStatusBySlug,
+	keyListTaskStatuses,
+} from '@/modules/task-status/services/keys'
 
 export const useListTaskStatuses = (
 	options?: UseQueryOptions<TaskStatus[], AxiosError<ErrorResponse>, TaskStatus[]>,
@@ -35,6 +39,16 @@ export const useGetTaskStatusById = (
 		queryKey: keyGetTaskStatusById(id),
 		queryFn: () => api.get(`/task-status/${id}`).then((r) => parseResponseData<TaskStatus>(r)),
 		enabled: !!id,
+		...options,
+	})
+
+export const useGetTaskStatusBySlug = (
+	slug: string | undefined,
+	options?: UseQueryOptions<TaskStatus, AxiosError<ErrorResponse>, TaskStatus>,
+) =>
+	useQuery({
+		queryKey: keyGetTaskStatusBySlug(slug),
+		enabled: !!slug,
 		...options,
 	})
 

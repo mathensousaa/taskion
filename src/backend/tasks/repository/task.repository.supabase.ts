@@ -1,6 +1,9 @@
 import { injectable } from 'tsyringe'
 import type { Paginated } from '@/backend/common/types'
-import type { PaginationQuery } from '@/backend/common/validation/common.schema'
+import type {
+	PaginationQuery,
+	TaskRepositoryFilters,
+} from '@/backend/common/validation/common.schema'
 import type { ITaskRepository } from '@/backend/tasks/repository/task.repository'
 import {
 	type Cursor,
@@ -66,6 +69,86 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.order('created_at', { ascending: true })
 			.order('id', { ascending: true })
 			.limit(limit + 1) // Get one extra to determine if there are more results
+
+		// Apply cursor if provided
+		if (cursor) {
+			query = query.or(
+				`order.gt.${cursor.order},and(order.eq.${cursor.order},created_at.gt.${cursor.created_at}),and(order.eq.${cursor.order},created_at.eq.${cursor.created_at},id.gt.${cursor.id})`,
+			)
+		}
+
+		const { data, error } = await query
+
+		if (error) throw error
+
+		const tasks = data.map((task) => TaskSchema.parse(task))
+		const hasMore = tasks.length > limit
+		const resultTasks = hasMore ? tasks.slice(0, limit) : tasks
+
+		// Calculate next cursor
+		let nextCursor: Cursor | undefined
+		if (hasMore && resultTasks.length > 0) {
+			const lastTask = resultTasks[resultTasks.length - 1]
+			nextCursor = {
+				order: lastTask.order,
+				created_at: lastTask.created_at,
+				id: lastTask.id,
+			}
+		}
+
+		return {
+			data: resultTasks,
+			nextCursor,
+			hasMore,
+		}
+	}
+
+	async findAllByUserIdWithFilters(
+		userId: string,
+		filters: TaskRepositoryFilters,
+	): Promise<Task[]> {
+		let query = supabase
+			.from('tasks')
+			.select('*')
+			.eq('user_id', userId)
+			.is('deleted_at', null)
+			.order('order', { ascending: true })
+			.order('created_at', { ascending: true })
+			.order('id', { ascending: true })
+
+		// Apply status_id filter if provided
+		if (filters.status_id) {
+			query = query.eq('status_id', filters.status_id)
+		}
+
+		const { data, error } = await query
+
+		if (error) throw error
+
+		return data.map((task) => TaskSchema.parse(task))
+	}
+
+	async findAllByUserIdPaginatedWithFilters(
+		userId: string,
+		pagination: PaginationQuery,
+		filters: TaskRepositoryFilters,
+	): Promise<Paginated<Task>> {
+		const { limit, cursor } = pagination
+
+		let query = supabase
+			.from('tasks')
+			.select('*')
+			.eq('user_id', userId)
+			.is('deleted_at', null)
+			.order('order', { ascending: true })
+			.order('created_at', { ascending: true })
+			.order('id', { ascending: true })
+			.limit(limit + 1) // Get one extra to determine if there are more results
+
+		// Apply status_id filter if provided
+		if (filters.status_id) {
+			query = query.eq('status_id', filters.status_id)
+		}
 
 		// Apply cursor if provided
 		if (cursor) {

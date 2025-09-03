@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server'
 import { inject, injectable } from 'tsyringe'
 import { IsAuthenticated } from '@/backend/common/decorators'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
-import { validateIdParam } from '@/backend/common/validation/common.schema'
+import { NotFoundError } from '@/backend/common/errors/not-found-error'
+import { validateIdParam, validateSlugParam } from '@/backend/common/validation/common.schema'
 import { TaskStatusService } from '@/backend/task-status/services/task-status.service'
 import {
 	TaskStatusCreationSchema,
 	TaskStatusUpdateSchema,
 } from '@/backend/task-status/validation/task-status.schema'
-import type { User } from '@/backend/users/validation/user.schema'
 
 @injectable()
 export class TaskStatusController {
@@ -45,7 +45,7 @@ export class TaskStatusController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyOnly: true, allowEmailToken: true, allowApiKeyWithUserId: true })
 	async getById(id: string) {
 		try {
 			// Validate ID parameter before calling service
@@ -54,10 +54,7 @@ export class TaskStatusController {
 			const taskStatus = await this.service.getTaskStatusById(validatedId)
 
 			if (!taskStatus) {
-				return NextResponse.json(
-					{ success: false, message: 'Task status not found' },
-					{ status: 404 },
-				)
+				throw new NotFoundError('Task status not found')
 			}
 
 			return NextResponse.json(
@@ -66,6 +63,27 @@ export class TaskStatusController {
 			)
 		} catch (error) {
 			return ErrorHandler.handle(error, 'TaskStatusController.getById')
+		}
+	}
+
+	@IsAuthenticated({ allowApiKeyOnly: true, allowEmailToken: true, allowApiKeyWithUserId: true })
+	async getBySlug(slug: string) {
+		try {
+			// Validate slug parameter before calling service
+			const validatedSlug = validateSlugParam(slug)
+
+			const taskStatus = await this.service.getTaskStatusBySlug(validatedSlug)
+
+			if (!taskStatus) {
+				throw new NotFoundError('Task status not found')
+			}
+
+			return NextResponse.json(
+				{ success: true, message: 'Task status retrieved successfully', data: taskStatus },
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TaskStatusController.getBySlug')
 		}
 	}
 

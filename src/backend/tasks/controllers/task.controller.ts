@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import { inject, injectable } from 'tsyringe'
 import { IsAuthenticated } from '@/backend/common/decorators'
 import { ErrorHandler } from '@/backend/common/errors/error-handler'
-import { PaginationQuerySchema, validateIdParam } from '@/backend/common/validation/common.schema'
+import {
+	PaginationQuerySchema,
+	TaskFiltersSchema,
+	validateIdParam,
+} from '@/backend/common/validation/common.schema'
 import { TaskEnhancerService } from '@/backend/task-enhancer/services/task-enhancer.service'
 import { TaskService } from '@/backend/tasks/services/task.service'
 import {
@@ -38,7 +42,34 @@ export class TaskController {
 	@IsAuthenticated()
 	async getAll(req: Request) {
 		try {
-			// Parse query parameters for pagination
+			// Parse query parameters for filters only (no pagination)
+			const url = new URL(req.url)
+			const filters = TaskFiltersSchema.parse({
+				status: url.searchParams.get('status'),
+			})
+
+			// Use filtered method if filters are provided, otherwise get all tasks
+			const tasks = Object.values(filters).some((value) => value !== undefined)
+				? await this.service.getTasksWithFilters(req.user!, filters)
+				: await this.service.getAllTasks(req.user!)
+
+			return NextResponse.json(
+				{
+					success: true,
+					message: 'Tasks retrieved successfully',
+					data: tasks,
+				},
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TaskController.getAll')
+		}
+	}
+
+	@IsAuthenticated()
+	async getPaginated(req: Request) {
+		try {
+			// Parse query parameters for pagination and filters
 			const url = new URL(req.url)
 			const pagination = PaginationQuerySchema.parse({
 				limit: url.searchParams.get('limit'),
@@ -47,7 +78,14 @@ export class TaskController {
 					: undefined,
 			})
 
-			const result = await this.service.getTasksPaginated(req.user!, pagination)
+			const filters = TaskFiltersSchema.parse({
+				status: url.searchParams.get('status'),
+			})
+
+			// Use filtered method if filters are provided, otherwise use regular pagination
+			const result = Object.values(filters).some((value) => value !== undefined)
+				? await this.service.getTasksPaginatedWithFilters(req.user!, pagination, filters)
+				: await this.service.getTasksPaginated(req.user!, pagination)
 
 			return NextResponse.json(
 				{
@@ -58,7 +96,7 @@ export class TaskController {
 				{ status: 200 },
 			)
 		} catch (error) {
-			return ErrorHandler.handle(error, 'TaskController.getAll')
+			return ErrorHandler.handle(error, 'TaskController.getPaginated')
 		}
 	}
 

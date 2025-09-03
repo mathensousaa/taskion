@@ -51,7 +51,7 @@ export function TaskSearch({
 					value={query}
 					onChange={handleInputChange}
 					placeholder={placeholder}
-					className="h-10 border-border bg-background pr-10 pl-10 transition-colors hover:bg-accent/50 focus:bg-background"
+					className="h-8 border-border pr-10 pl-10 transition-colors"
 					disabled={isPending}
 				/>
 				{query && (
