@@ -18,7 +18,7 @@ export class TaskController {
 		@inject(TaskEnhancerService) private readonly taskEnhancerService: TaskEnhancerService,
 	) {}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async create(req: Request) {
 		try {
 			const body = await req.json()

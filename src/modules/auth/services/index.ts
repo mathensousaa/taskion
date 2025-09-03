@@ -15,11 +15,11 @@ import { parseResponseData } from '@/lib/utils'
 import { keyAuthMe } from '@/modules/auth/services/keys'
 
 export const useGetMe = (
-	options?: UseQueryOptions<AuthResponse, AxiosError<ErrorResponse>, AuthResponse>,
-): UseQueryResult<AuthResponse, AxiosError<ErrorResponse>> =>
+	options?: UseQueryOptions<User, AxiosError<ErrorResponse>, User>,
+): UseQueryResult<User, AxiosError<ErrorResponse>> =>
 	useQuery({
 		queryKey: keyAuthMe(),
-		queryFn: () => api.get('/me').then((r) => parseResponseData<AuthResponse>(r)),
+		queryFn: () => api.get('/me').then((r) => parseResponseData<User>(r)),
 		...options,
 	})
 
