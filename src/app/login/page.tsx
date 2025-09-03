@@ -2,7 +2,7 @@
 
 import { ListTodo } from 'lucide-react'
 import Link from 'next/link'
-import { useRef } from 'react'
+import { Suspense, useRef } from 'react'
 import { AnimatedGridPattern } from '@/components/magicui/animated-grid-pattern'
 import { cn } from '@/lib/utils'
 import { LoginForm } from '@/modules/auth/components'
@@ -21,7 +21,9 @@ export default function LoginPage() {
 				</div>
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-xs">
-						<LoginForm />
+						<Suspense fallback={<div>Loading...</div>}>
+							<LoginForm />
+						</Suspense>
 					</div>
 				</div>
 			</div>

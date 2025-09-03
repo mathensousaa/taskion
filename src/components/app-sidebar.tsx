@@ -85,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 import type { LucideIcon } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -291,6 +291,7 @@ function AddTaskDialog({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="p-0">
+				<DialogTitle className="sr-only">Add New Task</DialogTitle>
 				<NewTaskCard onSubmit={handleSubmit} onCancel={handleCancel} isSubmitting={isPending} />
 			</DialogContent>
 		</Dialog>

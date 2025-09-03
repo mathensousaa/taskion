@@ -45,6 +45,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 				className="h-[80vh] w-full overflow-y-auto p-0 sm:max-w-7xl"
 				showCloseButton={true}
 			>
+				<DialogTitle className="sr-only">Task Details</DialogTitle>
 				<QueryHandler
 					status={status}
 					data={task}
