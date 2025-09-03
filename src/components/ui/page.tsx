@@ -18,7 +18,10 @@ const PageHeader = forwardRef<HTMLElement, HTMLAttributes<HTMLElement>>(
 	({ className, ...props }, ref) => (
 		<header
 			ref={ref}
-			className={cn('flex w-full flex-row items-center justify-start gap-2 px-3 py-2', className)}
+			className={cn(
+				'sticky top-0 right-0 left-0 z-50 flex w-full flex-row items-center justify-start gap-2 border-border/50 border-b bg-background px-3 py-2',
+				className,
+			)}
 			{...props}
 		/>
 	),
