@@ -90,6 +90,7 @@ async function authenticateUser(
 	args: any[],
 ): Promise<AuthenticatedUserResult> {
 	// Try session-based authentication first
+
 	const sessionUser = await authenticateViaSession()
 	if (sessionUser) {
 		return { user: sessionUser, source: 'session' }
@@ -190,11 +191,14 @@ async function authenticateViaApiKey(args: any[]): Promise<User | null> {
  */
 async function authenticateViaApiKeyOnly(args: any[]): Promise<boolean> {
 	const request = findRequestInArgs(args)
+
 	if (!request) {
 		return false
 	}
 
 	const apiKey = request.headers.get('x-api-key')
+
+	console.log('apiKey', apiKey)
 
 	if (!apiKey || apiKey !== process.env.TASK_ENHANCER_SECRET) {
 		return false
