@@ -39,7 +39,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async getAll(req: Request) {
 		try {
 			// Parse query parameters for filters only (no pagination)
@@ -66,7 +66,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async getPaginated(req: Request) {
 		try {
 			// Parse query parameters for pagination and filters
@@ -100,7 +100,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async getById(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)
@@ -120,7 +120,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated({ allowApiKeyWithUserId: true })
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async update(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)
@@ -139,7 +139,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async delete(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)
@@ -155,7 +155,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async reorder(req: Request) {
 		try {
 			const body = await req.json()
@@ -176,7 +176,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated({ allowApiKeyWithUserId: true })
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async enhance(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)
@@ -202,7 +202,7 @@ export class TaskController {
 		}
 	}
 
-	@IsAuthenticated()
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async toggleStatus(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)
