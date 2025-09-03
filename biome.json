@@ -32,7 +32,9 @@
 		"rules": {
 			"recommended": true,
 			"complexity": {},
-			"correctness": {},
+			"correctness": {
+				"noUnusedImports": "error"
+			},
 			"suspicious": {
 				"noUnknownAtRules": "off"
 			},
