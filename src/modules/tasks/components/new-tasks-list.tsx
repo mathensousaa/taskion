@@ -3,14 +3,10 @@
 import { Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
-import type { Task, TaskCreationInput } from '@/backend/tasks/validation/task.schema'
+import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import { useCreateTask } from '@/modules/tasks/services'
 import { NewTaskCard } from './new-task-card'
-
-interface NewTasksListProps {
-	onTaskCreated: (task: Task) => void
-}
 
 interface PendingTask {
 	id: string
@@ -18,13 +14,12 @@ interface PendingTask {
 	isSubmitting: boolean
 }
 
-export function NewTasksList({ onTaskCreated }: NewTasksListProps) {
+export function NewTasksList() {
 	const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([])
 	const [showAddButton, setShowAddButton] = useState(true)
 
 	const { mutate: createTask } = useCreateTask({
 		onSuccess: (newTask) => {
-			onTaskCreated(newTask)
 			toast('Success!', {
 				description: (
 					<span>
@@ -63,7 +58,6 @@ export function NewTasksList({ onTaskCreated }: NewTasksListProps) {
 					// Remove the pending task and add the real task.
 					setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
 					setShowAddButton(true)
-					onTaskCreated(newTask)
 				},
 				onError: () => {
 					// Reset the pending task to allow retry.
@@ -75,7 +69,7 @@ export function NewTasksList({ onTaskCreated }: NewTasksListProps) {
 				},
 			})
 		},
-		[createTask, onTaskCreated],
+		[createTask],
 	)
 
 	const handleTaskCancel = useCallback((pendingTaskId: string) => {

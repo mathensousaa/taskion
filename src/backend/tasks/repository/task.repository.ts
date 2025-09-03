@@ -1,5 +1,8 @@
 import type { Paginated } from '@/backend/common/types'
-import type { PaginationQuery } from '@/backend/common/validation/common.schema'
+import type {
+	PaginationQuery,
+	TaskRepositoryFilters,
+} from '@/backend/common/validation/common.schema'
 import type {
 	Task,
 	TaskDbInsert,
@@ -12,6 +15,12 @@ export interface ITaskRepository {
 	findAll(): Promise<Task[]>
 	findAllByUserId(userId: string): Promise<Task[]>
 	findAllByUserIdPaginated(userId: string, pagination: PaginationQuery): Promise<Paginated<Task>>
+	findAllByUserIdWithFilters(userId: string, filters: TaskRepositoryFilters): Promise<Task[]>
+	findAllByUserIdPaginatedWithFilters(
+		userId: string,
+		pagination: PaginationQuery,
+		filters: TaskRepositoryFilters,
+	): Promise<Paginated<Task>>
 	findById(id: string): Promise<Task | null>
 	update(id: string, task: TaskUpdateInput): Promise<Task>
 	delete(id: string): Promise<void>

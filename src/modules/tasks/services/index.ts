@@ -18,11 +18,16 @@ import { api } from '@/lib/axios'
 import { queryClient } from '@/lib/react-query'
 import { queryKeyToUrl } from '@/lib/react-query/helpers'
 import { isQueryParam, parseResponseData } from '@/lib/utils'
-import { keyGetTaskById, keyListPaginatedTasks } from '@/modules/tasks/services/keys'
+import {
+	keyGetTaskById,
+	keyListAllTasks,
+	keyListPaginatedTasks,
+} from '@/modules/tasks/services/keys'
 
 export const useListTasks = (
 	limit: number,
 	cursor?: { order: number; created_at: string; id: string },
+	status?: string,
 	options?: UseQueryOptions<
 		PaginatedApiResponse<Task>,
 		AxiosError<ErrorResponse>,
@@ -30,11 +35,20 @@ export const useListTasks = (
 	>,
 ): UseQueryResult<PaginatedApiResponse<Task>, AxiosError<ErrorResponse>> =>
 	useQuery({
-		queryKey: keyListPaginatedTasks(limit, cursor),
+		queryKey: keyListPaginatedTasks(limit, cursor, status),
 		queryFn: () =>
 			api
-				.get(queryKeyToUrl(keyListPaginatedTasks(limit, cursor)))
+				.get(`/tasks/paginated${queryKeyToUrl(keyListPaginatedTasks(limit, cursor, status))}`)
 				.then((r) => parseResponseData<PaginatedApiResponse<Task>>(r, { useRawData: true })),
+		...options,
+	})
+
+export const useListAllTasks = (
+	filters: { status?: string },
+	options?: UseQueryOptions<Task[], AxiosError<ErrorResponse>, Task[]>,
+): UseQueryResult<Task[], AxiosError<ErrorResponse>> =>
+	useQuery({
+		queryKey: keyListAllTasks(filters),
 		...options,
 	})
 
