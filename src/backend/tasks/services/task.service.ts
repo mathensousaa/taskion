@@ -132,7 +132,15 @@ export class TaskService {
 		}
 
 		// Update the task with the provided data
-		return await this.taskRepository.update(id, input)
+		const updatedTask = await this.taskRepository.update(id, input)
+
+		if (input.title !== existingTask.title) {
+			const enhancedTask = await this.taskEnhancerService.enhanceTask(updatedTask)
+
+			return enhancedTask
+		}
+
+		return updatedTask
 	}
 
 	async deleteTask(id: string, authenticatedUser: User) {

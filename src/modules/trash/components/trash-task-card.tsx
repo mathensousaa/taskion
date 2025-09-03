@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, Loader2, RotateCcw, Trash2 } from 'lucide-react'
+import { Calendar, Loader2, MoreVertical, RotateCcw, Trash2 } from 'lucide-react'
 import Markdown from 'react-markdown'
 import type { Task } from '@/backend/tasks/validation/task.schema'
 import { Highlighter } from '@/components/magicui/highlighter'
@@ -13,7 +13,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn, truncateToWords } from '@/lib/utils'
-import { usePermanentlyDeleteTask, useRestoreTask } from '@/modules/trash/services/trash.service'
+import { usePermanentlyDeleteTask, useRestoreTask } from '@/modules/trash/services'
 
 interface TrashTaskCardProps {
 	task: Task
@@ -103,7 +103,7 @@ export function TrashTaskCard({
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-							<Trash2 className="h-4 w-4" />
+							<MoreVertical className="h-4 w-4" />
 							<span className="sr-only">Open menu</span>
 						</Button>
 					</DropdownMenuTrigger>

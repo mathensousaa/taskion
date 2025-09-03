@@ -55,38 +55,9 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 
 	const { data: taskStatus } = useGetTaskStatusById(task.status_id)
 
-	const { mutate: updateTask, isPending: isUpdating } = useUpdateTask(task.id, {
-		onSuccess: () => {
-			setIsEditingTitle(false)
-			setIsEditingDescription(false)
-			toast('Success!', {
-				description: 'Tarefa atualizada com sucesso.',
-			})
-		},
-		onError: (error) => {
-			toast.error('Error updating task', {
-				description: error.message,
-			})
-		},
-	})
+	const { mutate: updateTask, isPending: isUpdating } = useUpdateTask(task.id)
 
-	const { mutate: deleteTask } = useDeleteTask(task.id, {
-		onSuccess: () => {
-			console.log('deleteTask onSuccess')
-			toast('Success!', {
-				description: (
-					<span>
-						Task <strong>"{task.title}"</strong> removed.
-					</span>
-				),
-			})
-		},
-		onError: (error) => {
-			toast.error('Error removing task', {
-				description: error.message,
-			})
-		},
-	})
+	const { mutate: deleteTask } = useDeleteTask(task.id)
 
 	const titleForm = useForm<TaskTitleFormData>({
 		resolver: zodResolver(TaskTitleSchema),
@@ -119,7 +90,20 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 			}
 
 			const updateData: TaskUpdateInput = { title: values.title.trim() }
-			updateTask(updateData)
+			updateTask(updateData, {
+				onSuccess: () => {
+					setIsEditingTitle(false)
+					setIsEditingDescription(false)
+					toast('Success!', {
+						description: 'Tarefa atualizada com sucesso.',
+					})
+				},
+				onError: (error) => {
+					toast.error('Error updating task', {
+						description: error.message,
+					})
+				},
+			})
 		},
 		[task.title, updateTask],
 	)
@@ -131,7 +115,20 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 		}
 
 		const updateData: TaskUpdateInput = { description: description || undefined }
-		updateTask(updateData)
+		updateTask(updateData, {
+			onSuccess: () => {
+				setIsEditingTitle(false)
+				setIsEditingDescription(false)
+				toast('Success!', {
+					description: 'Tarefa atualizada com sucesso.',
+				})
+			},
+			onError: (error) => {
+				toast.error('Error updating task', {
+					description: error.message,
+				})
+			},
+		})
 	}, [description, task.description, updateTask])
 
 	const handleKeyDown = useCallback(
@@ -157,8 +154,23 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 	)
 
 	const handleDelete = useCallback(() => {
-		deleteTask()
-	}, [deleteTask])
+		deleteTask(undefined, {
+			onSuccess: () => {
+				toast('Success!', {
+					description: (
+						<span>
+							Task <strong>"{task.title}"</strong> removed.
+						</span>
+					),
+				})
+			},
+			onError: (error) => {
+				toast.error('Error removing task', {
+					description: error.message,
+				})
+			},
+		})
+	}, [deleteTask, task.title])
 
 	const handleCardClick = useCallback(
 		(e: React.MouseEvent) => {
@@ -245,10 +257,8 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 					</div>
 				</div>
 
-				{/* Task Content. */}
+				{/* Task Content */}
 				<div className="space-y-3">
-					{/* Title */}
-
 					{/* Description */}
 					{task.description && (
 						<div className="min-h-[20px]">

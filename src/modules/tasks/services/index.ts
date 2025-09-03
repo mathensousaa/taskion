@@ -67,6 +67,11 @@ export const useCreateTask = (
 ) =>
 	useMutation({
 		mutationFn: (data: TaskCreationInput) => api.post(`/tasks`, data).then(parseResponseData<Task>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
 		...options,
 	})
 
@@ -77,6 +82,13 @@ export const useUpdateTask = (
 	useMutation({
 		mutationFn: (data: TaskUpdateInput) =>
 			api.put(`/tasks/${id}`, data).then(parseResponseData<Task>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+
+			queryClient.invalidateQueries({ queryKey: keyGetTaskById(id) })
+		},
 		...options,
 	})
 
@@ -91,8 +103,6 @@ export const useDeleteTask = (
 				queryKey: keyGetTaskById(id),
 			})
 
-			console.log('invalidateQueries')
-
 			queryClient.invalidateQueries({
 				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})
@@ -106,6 +116,11 @@ export const useReorderTasks = (
 	useMutation({
 		mutationFn: (data: TasksReorderInput) =>
 			api.patch(`/tasks`, data).then(parseResponseData<void>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
 		...options,
 	})
 
@@ -116,17 +131,15 @@ export const useToggleTaskStatus = (
 	useMutation({
 		mutationFn: () => api.patch(`/tasks/${id}/toggle-status`).then(parseResponseData<Task>),
 		onSuccess: (data) => {
-			console.log('data', data)
-
 			queryClient.setQueryData(keyGetTaskById(id), (oldData: Task) => {
 				return {
 					...oldData,
-					status_id: data.status_id,
+					status_id: data?.status_id || oldData.status_id,
 				}
 			})
 
 			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks',
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})
 		},
 		...options,

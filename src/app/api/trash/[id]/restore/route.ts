@@ -1,8 +1,6 @@
-import { container } from 'tsyringe'
-import { TrashController } from '@/backend/tasks/controllers/trash.controller'
+import { trashController } from '@/server-container'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params
-	const controller = container.resolve(TrashController)
-	return controller.restoreTask(req, id)
+	return trashController.restoreTask(req, id)
 }
