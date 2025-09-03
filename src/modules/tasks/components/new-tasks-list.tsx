@@ -18,22 +18,7 @@ export function NewTasksList() {
 	const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([])
 	const [showAddButton, setShowAddButton] = useState(true)
 
-	const { mutate: createTask } = useCreateTask({
-		onSuccess: (newTask) => {
-			toast('Success!', {
-				description: (
-					<span>
-						Task <strong>"{newTask.title}"</strong> created.
-					</span>
-				),
-			})
-		},
-		onError: (error) => {
-			toast.error('Error creating task', {
-				description: error.message,
-			})
-		},
-	})
+	const { mutate: createTask } = useCreateTask()
 
 	const handleAddTask = useCallback(() => {
 		const newPendingTask: PendingTask = {
@@ -55,17 +40,28 @@ export function NewTasksList() {
 
 			createTask(data, {
 				onSuccess: (newTask) => {
-					// Remove the pending task and add the real task.
+					// Remove the pnding task and add the real task.
 					setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
 					setShowAddButton(true)
+
+					toast('Success!', {
+						description: (
+							<span>
+								Task <strong>"{newTask.title}"</strong> created.
+							</span>
+						),
+					})
 				},
-				onError: () => {
+				onError: (error) => {
 					// Reset the pending task to allow retry.
 					setPendingTasks((prev) =>
 						prev.map((task) =>
 							task.id === pendingTaskId ? { ...task, isSubmitting: false } : task,
 						),
 					)
+					toast.error('Error creating task', {
+						description: error.message,
+					})
 				},
 			})
 		},

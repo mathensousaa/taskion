@@ -1,0 +1,326 @@
+{
+  "name": "Taskion AI Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c3bbdb14-a623-4de1-8f56-5781cd74ceba",
+      "name": "Webhook",
+      "webhookId": "31d873ae-debc-4807-bf85-aaafdfc12da3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "129f2590-4ecb-40ae-9f91-f81b04e51198",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "ee3743bf-8bdb-475e-8e7d-af6c54ca90b2",
+              "name": "session_id",
+              "value": "={{ $json.body.session_id }}",
+              "type": "string"
+            },
+            {
+              "id": "e0d1e8b2-1889-486d-b4d4-e82897b1990d",
+              "name": "user_id",
+              "value": "={{ $json.body.user_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "4ebba215-223a-499f-8d37-58b5ac32ebfb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "options": {
+          "systemMessage": "Role: You are Taskion AI Assistant, a friendly personal productivity assistant, task manager, and organization consultant.\n\nContext: You work inside the Taskion platform, a task management system that goes beyond a simple to-do list. Users can register activities, enhance them with AI for clarity and objectivity, and interact with you both in the platform and via WhatsApp.\n\nRules:\n\nAnswer in the user’s language.\n\nOnly talk about Taskion and task management.\n\nNever suggest irrelevant tasks.\n\nNever invent commitments.\n\nDo not answer questions unrelated to Taskion or task management.\n\nRestrictions:\n\nKeep answers short and clear.\n\nUse emojis to keep the tone light and friendly.\n\nBehavior:\n\nBe proactive: offer suggestions, planning tips, and improvements to tasks.\n\nAlways provide value in task management and organization.\n\nProcedures:\n\nWhen the user wants to create a task:\n\nAsk for the task title.\n\nThe title must have at least 3 words.\n\nInform the system that the task must be created via the API, which will automatically generate the task description.\n\nReturn to the user:\n\n“Perfect! I created the task: {{task title}}.\nHere’s a description based on the title: {{generated description from API}} ✅”\n\nNo email or account confirmation is needed. The task is linked to the user ID automatically.\n\nExamples:\n\nUser: #todo\nAssistant: 👋 Hi! I’m Taskion AI Assistant. I help you organize your tasks smarter with AI — from enhancing your descriptions to planning your activities. How can I help today?\n\nUser: I want to add a new task\nAssistant: Great! Please provide the task title (minimum 3 words). 📌\n\nUser: Finish project report today\nAssistant: Perfect! I created the task: Finish project report today.\nHere’s a description based on the title: {{generated description from API}} ✅"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        0
+      ],
+      "id": "0e4b62d0-4ec3-4cae-8f30-f1524446a80d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        448,
+        224
+      ],
+      "id": "2bdeccfd-4125-48a8-ad89-18cf8face1e3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "rRrc6uSdiscuKTGk",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.session_id }}{{ $json.user_id }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        576,
+        224
+      ],
+      "id": "c582df99-9894-4933-b8a1-176239c2d203",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "Jtq6MTiRXdGFhHTG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ $json.formattedText }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "73c962bd-7998-4530-9a90-244ce7961cda",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This tool makes an HTTP POST request to create a new task. It expects the task details (title) to be included in the request body in JSON format. When called, the tool registers the task in the system and returns the newly created task’s information (including its unique ID and any default fields set by the server).\n\nUse this tool whenever the user wants to add a new task to their list. Do not use it for updating, deleting, or fetching tasks.",
+        "method": "POST",
+        "url": "https://app.taskion.matheusousa.dev/api/tasks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Edit Fields').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        704,
+        224
+      ],
+      "id": "8175f3cb-ba90-4c26-87bf-412683a7d379",
+      "name": "Create New Task",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PQUxpKOO1a2mkU4u",
+          "name": "Taskion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const text = $json[\"output\"];\n\n// Usa JSON.stringify para escapar tudo corretamente\nconst safeText = JSON.stringify(text);\n\n// Retorna sem problemas de quebras ou caracteres especiais\nreturn {\n  json: {\n    formattedText: safeText\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "20e105fa-6de7-4c7f-8484-de1abd297ad5",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This tool makes an HTTP GET request to the /api/tasks endpoint to list tasks for a specific user. It expects the user_id to be provided (either as a query parameter or in the request body). Optionally, a status parameter can be included to filter tasks by their progress.\n\nStatus values:\n\nnot_started — Tasks that have not yet been started\n\nin_progress — Tasks currently in progress\n\ndone — Completed tasks\n\nImportant: There is no pending status in the API. If the user wants to view all pending tasks (not_started + in_progress), the LLM should make two separate requests—one for not_started and one for in_progress—and then combine the results.\n\nInstructions for LLM:\n\nUse this tool whenever the user wants to view tasks, filtered by status or listing all tasks.\n\nAlways include user_id so tasks are fetched for the correct user.\n\nDo not use this tool to create, update, or delete tasks.\n\nFormat the response in a user-friendly, readable format, summarizing each task with title, due date, and status (e.g., numbered list).\n\nFor pending tasks, combine results from not_started and in_progress requests.\n\nUsage Examples:\n\nList all tasks\n\nList only not_started tasks\n\nList tasks in progress (in_progress)\n\nList completed tasks (done)\n\nList pending tasks (combine not_started + in_progress)",
+        "url": "https://app.taskion.matheusousa.dev/api/tasks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `The status query parameter indicates the progress of a task. The LLM should only generate one of the following three valid values:\n\nnot_started — Task has not been started yet.\n\nin_progress — Task is currently in progress.\n\ndone — Task is completed.\n\nInstructions for LLM:\n\nAlways select only one of these three values.\n\nDo not invent or use other values (e.g., “completed”, “pending”).\n\nEnsure that the selected value accurately reflects the task’s progress in the context.`, 'string') }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-user-id",
+              "value": "={{ $('Edit Fields').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        224
+      ],
+      "id": "1409a2fd-56d9-4afa-93c9-3b7eceeed542",
+      "name": "List Tasks",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PQUxpKOO1a2mkU4u",
+          "name": "Taskion API Key"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Task": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "HGzglQRvzVw2RhH3"
+  },
+  "versionId": "12b15fca-1688-47d7-8331-937047d326af",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "039fb9bf445f972c2f944445ca3030751dcab7ed3f4ee77030c0cc2c1141e558"
+  },
+  "id": "HGzglQRvzVw2RhH3",
+  "tags": []
+}

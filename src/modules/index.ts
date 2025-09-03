@@ -20,5 +20,5 @@ export type {
 export * from './auth/services'
 export * from './task-status/services'
 export * from './tasks/services'
-export * from './trash/services/trash.service'
+export * from './trash/services'
 export * from './users/services'

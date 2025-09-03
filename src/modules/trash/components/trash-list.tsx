@@ -4,11 +4,7 @@ import { Loader2, Trash2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import type { Task } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
-import {
-	useEmptyTrash,
-	useListTrash,
-	usePermanentlyDeleteTask,
-} from '@/modules/trash/services/trash.service'
+import { useEmptyTrash, useListTrash, usePermanentlyDeleteTask } from '@/modules/trash/services'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { EmptyTrashDialog } from './empty-trash-dialog'
 import { EmptyTrashState } from './empty-trash-state'
@@ -137,6 +133,10 @@ export function TrashList() {
 							if (taskToDelete) {
 								openDeleteTaskDialog(taskToDelete)
 							}
+						}}
+						onRestore={() => {
+							// Task will be automatically removed from the list by the mutation
+							// No additional action needed here
 						}}
 					/>
 				))}

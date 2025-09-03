@@ -8,6 +8,7 @@ export const keyListPaginatedTasks = (
 
 export const keyListAllTasks = (filters: { status?: string }) => [
 	'tasks',
+	'#all',
 	...objectToQueryParams(filters),
 ]
 

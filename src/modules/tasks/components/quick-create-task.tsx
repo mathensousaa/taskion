@@ -10,6 +10,7 @@ import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
 import { useCreateTask } from '@/modules/tasks/services'
 
@@ -19,7 +20,8 @@ const QuickCreateTaskSchema = z.object({
 		.min(1, 'Title is required.')
 		.refine((title) => title.trim().split(/\s+/).length >= 3, {
 			message: 'Please provide more details. Enter at least 3 words.',
-		}),
+		})
+		.trim(),
 })
 
 type QuickCreateTaskFormData = z.infer<typeof QuickCreateTaskSchema>
@@ -38,33 +40,33 @@ export function QuickCreateTask({ className }: QuickCreateTaskProps) {
 		},
 	})
 
-	const { mutate: createTask, isPending } = useCreateTask({
-		onSuccess: (newTask) => {
-			form.reset()
-			setIsExpanded(false)
-			toast('Success!', {
-				description: (
-					<span>
-						Task <strong>"{newTask.title}"</strong> created.
-					</span>
-				),
-			})
-		},
-		onError: (error) => {
-			toast.error('Error creating task', {
-				description: error.message,
-			})
-		},
-	})
+	const { mutate: createTask, isPending } = useCreateTask()
 
 	const handleCreate = useCallback(
 		(values: QuickCreateTaskFormData) => {
-			const taskData: TaskCreationInput = {
-				title: values.title.trim(),
-			}
-			createTask(taskData)
+			createTask(values, {
+				onSuccess: (newTask) => {
+					form.reset()
+					setIsExpanded(false)
+					toast('Success!', {
+						description: (
+							<span>
+								Task <strong>"{newTask.title}"</strong> created.
+							</span>
+						),
+					})
+					queryClient.invalidateQueries({
+						predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+					})
+				},
+				onError: (error) => {
+					toast.error('Error creating task', {
+						description: error.message,
+					})
+				},
+			})
 		},
-		[createTask],
+		[createTask, form.reset],
 	)
 
 	const handleKeyDown = useCallback(

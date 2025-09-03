@@ -31,4 +31,5 @@ export interface ITaskRepository {
 	findByIdIncludingDeleted(id: string): Promise<Task | null>
 	permanentlyDelete(id: string): Promise<void>
 	permanentlyDeleteAllByUserId(userId: string): Promise<void>
+	restore(id: string): Promise<Task>
 }

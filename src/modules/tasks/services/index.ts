@@ -17,7 +17,7 @@ import type {
 import { api } from '@/lib/axios'
 import { queryClient } from '@/lib/react-query'
 import { queryKeyToUrl } from '@/lib/react-query/helpers'
-import { isQueryParam, parseResponseData } from '@/lib/utils'
+import { parseResponseData } from '@/lib/utils'
 import {
 	keyGetTaskById,
 	keyListAllTasks,
@@ -67,6 +67,11 @@ export const useCreateTask = (
 ) =>
 	useMutation({
 		mutationFn: (data: TaskCreationInput) => api.post(`/tasks`, data).then(parseResponseData<Task>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
 		...options,
 	})
 
@@ -77,6 +82,13 @@ export const useUpdateTask = (
 	useMutation({
 		mutationFn: (data: TaskUpdateInput) =>
 			api.put(`/tasks/${id}`, data).then(parseResponseData<Task>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+
+			queryClient.invalidateQueries({ queryKey: keyGetTaskById(id) })
+		},
 		...options,
 	})
 
@@ -86,6 +98,15 @@ export const useDeleteTask = (
 ) =>
 	useMutation({
 		mutationFn: () => api.delete(`/tasks/${id}`).then(parseResponseData<void>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: keyGetTaskById(id),
+			})
+
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
 		...options,
 	})
 
@@ -95,6 +116,11 @@ export const useReorderTasks = (
 	useMutation({
 		mutationFn: (data: TasksReorderInput) =>
 			api.patch(`/tasks`, data).then(parseResponseData<void>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
 		...options,
 	})
 
@@ -105,17 +131,15 @@ export const useToggleTaskStatus = (
 	useMutation({
 		mutationFn: () => api.patch(`/tasks/${id}/toggle-status`).then(parseResponseData<Task>),
 		onSuccess: (data) => {
-			console.log('data', data)
-
 			queryClient.setQueryData(keyGetTaskById(id), (oldData: Task) => {
 				return {
 					...oldData,
-					status_id: data.status_id,
+					status_id: data?.status_id || oldData.status_id,
 				}
 			})
 
 			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && isQueryParam(query.queryKey[1]),
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})
 		},
 		...options,

@@ -52,4 +52,24 @@ export class TrashController {
 			return ErrorHandler.handle(error, 'TrashController.emptyTrash')
 		}
 	}
+
+	@IsAuthenticated()
+	async restoreTask(req: Request, id: string) {
+		try {
+			const validatedId = validateIdParam(id)
+
+			const restoredTask = await this.taskService.restoreTask(validatedId, req.user!)
+
+			return NextResponse.json(
+				{
+					success: true,
+					message: 'Task restored successfully',
+					data: restoredTask,
+				},
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TrashController.restoreTask')
+		}
+	}
 }

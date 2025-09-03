@@ -1,0 +1,374 @@
+{
+  "name": "Enhance Task",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "task-enhancer",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0d431808-e661-42bb-a162-adc46bfccf53",
+      "name": "Get Task",
+      "webhookId": "4f7c0439-113b-42de-9c5c-728f94d2c2c5",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gzvcWKoR7NXajRUu",
+          "name": "Webhook Auth Header"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Todo title: {{ $('Task').item.json.title }}\nTodo current description: {{ $('Task').item.json.description }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role:\nYou are a friendly Task Description Writer. Your role is to turn task titles into clear, actionable descriptions that guide users step by step.\n\nContext:\nTasks may come from any domain: work, school, health, hobbies, or personal life.\nEach description should be easy to follow and practical, helping the user complete the task efficiently.\n\nRules:\n\nAlways write in Markdown.\n\nKeep descriptions short and functional (up to 150 words).\n\nDo not repeat the task title in the description.\n\nAlways include a step-by-step guide, even for simple tasks.\n\nPrioritize clarity over length.\n\nAdd external links only if truly useful.\n\nRestrictions:\n\nNever make up false information.\n\nAvoid negative or discouraging wording.\n\nBehavior:\n\nWrite with the user performing the task in mind.\n\nUse numbered steps or bullet points for readability.\n\nAdd quick tips when relevant.\n\nProcedure:\n\nReceive a task title.\n\nGenerate a short, clear description without restating the title.\n\nFormat in Markdown with:\n\nStep-by-step guide\n\nTips/Resources (optional)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "ffcc348d-6572-46be-8a41-845a0b15be5a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        224
+      ],
+      "id": "97fce004-584c-4aae-b932-8e468e4311b3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "rRrc6uSdiscuKTGk",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Task').item.json.id }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        224
+      ],
+      "id": "77a768b2-b7cb-4ed0-a617-629c7b937a7e",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "Jtq6MTiRXdGFhHTG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a51020d-cbee-4bb4-be33-1e6f75e83f84",
+              "name": "id",
+              "value": "={{ $json.body.id }}",
+              "type": "string"
+            },
+            {
+              "id": "c8b1af0c-e3aa-4ee4-84b1-f356f74864a0",
+              "name": "title",
+              "value": "={{ $json.body.title }}",
+              "type": "string"
+            },
+            {
+              "id": "9bcdac3e-0337-4965-b793-1608457366e0",
+              "name": "description",
+              "value": "={{ $json.body.description }}",
+              "type": "string"
+            },
+            {
+              "id": "a48d74ef-e3af-44b8-b3ff-09a47f4ce749",
+              "name": "status_id",
+              "value": "={{ $json.body.status_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c35f7f23-ac53-43eb-bb27-0c3b80c96edd",
+              "name": "user_id",
+              "value": "={{ $json.body.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "45efab20-13c6-4955-aaba-ccb9c69306aa",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5f58efc2-09ff-4c4d-bf0c-f89c4ee05bcc",
+      "name": "Task"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1712,
+        0
+      ],
+      "id": "ee1d1073-4ec0-44ca-a2b1-b91f705b2ee5",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13272164-c651-4e86-9835-79a7c126ccfc",
+              "name": "description",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "a6b2a4dd-68c1-4635-bd07-3358f5fb6d18",
+      "name": "Get Description"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://app.taskion.matheusousa.dev/api/tasks/{{ $('Task').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "description",
+              "value": "={{ $json.description }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Task').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1488,
+        0
+      ],
+      "id": "85c13b68-8433-47be-a304-70b62c8a76d5",
+      "name": "Update Task",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PQUxpKOO1a2mkU4u",
+          "name": "Taskion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "This tool makes an HTTP POST request to create a new task. It expects the task details (title) to be included in the request body in JSON format. When called, the tool registers the task in the system and returns the newly created task’s information (including its unique ID and any default fields set by the server).\n\nUse this tool whenever the user wants to add a new task to their list. Do not use it for updating, deleting, or fetching tasks.",
+        "method": "POST",
+        "url": "=https://app.taskion.matheusousa.dev/api/tasks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        224
+      ],
+      "id": "00dbe32f-74d5-40ae-835c-6a9b85aca8d4",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PQUxpKOO1a2mkU4u",
+          "name": "Taskion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e3193478-0cde-4960-90c7-42968fbb80f1",
+              "name": "taskion_api",
+              "value": "https://app.taskion.matheusousa.dev/api",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f847d98c-9b5a-4198-8b1d-f100179645c7",
+      "name": "Variables"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Task": {
+      "main": [
+        [
+          {
+            "node": "Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Get Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task": {
+      "main": [
+        [
+          {
+            "node": "Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Description": {
+      "main": [
+        [
+          {
+            "node": "Update Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Task": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variables": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f32efded-488f-4d8b-b1fc-7575fc9ad420",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "039fb9bf445f972c2f944445ca3030751dcab7ed3f4ee77030c0cc2c1141e558"
+  },
+  "id": "0zVCsZuuDOYQqpyg",
+  "tags": []
+}

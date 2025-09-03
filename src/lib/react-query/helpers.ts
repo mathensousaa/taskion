@@ -9,6 +9,11 @@ export const queryKeyToUrl = (queryKey: QueryKey): string => {
 	const queryParams: string[] = []
 
 	for (const key of queryKey) {
+		// Skip keys that start with '#' (ignored indexes)
+		if (typeof key === 'string' && key.startsWith('#')) {
+			continue
+		}
+
 		if (typeof key === 'string' && key.includes('=')) {
 			queryParams.push(key)
 		} else {

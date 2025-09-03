@@ -132,7 +132,15 @@ export class TaskService {
 		}
 
 		// Update the task with the provided data
-		return await this.taskRepository.update(id, input)
+		const updatedTask = await this.taskRepository.update(id, input)
+
+		if (input.title !== existingTask.title) {
+			const enhancedTask = await this.taskEnhancerService.enhanceTask(updatedTask)
+
+			return enhancedTask
+		}
+
+		return updatedTask
 	}
 
 	async deleteTask(id: string, authenticatedUser: User) {
@@ -200,6 +208,26 @@ export class TaskService {
 	async emptyTrash(authenticatedUser: User) {
 		// Permanently delete all soft-deleted tasks belonging to the authenticated user
 		await this.taskRepository.permanentlyDeleteAllByUserId(authenticatedUser.id)
+	}
+
+	async restoreTask(id: string, authenticatedUser: User) {
+		// First verify the task exists, is soft-deleted, and belongs to the authenticated user
+		const existingTask = await this.taskRepository.findByIdIncludingDeleted(id)
+
+		if (!existingTask) {
+			throw new NotFoundError('Task not found')
+		}
+
+		if (existingTask.user_id !== authenticatedUser.id) {
+			throw new NotFoundError('Task not found')
+		}
+
+		if (!existingTask.deleted_at) {
+			throw new NotFoundError('Task is not in trash')
+		}
+
+		// Restore the task by setting deleted_at to null
+		return await this.taskRepository.restore(id)
 	}
 
 	async toggleTaskStatus(id: string, authenticatedUser: User) {
