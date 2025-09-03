@@ -11,14 +11,14 @@ interface User {
 }
 
 interface AuthState {
-	user: User | null
+	user: User | undefined
 	isLoading: boolean
 	isAuthenticated: boolean
 }
 
 export function useAuth() {
 	const [authState, setAuthState] = useState<AuthState>({
-		user: null,
+		user: undefined,
 		isLoading: true,
 		isAuthenticated: false,
 	})
@@ -34,19 +34,16 @@ export function useAuth() {
 			{},
 			{
 				onSuccess: ({ data: user }) => {
-					console.log('user', user)
-					if (user) {
-						setAuthState({
-							user,
-							isLoading: false,
-							isAuthenticated: true,
-						})
-					}
+					setAuthState({
+						user,
+						isLoading: false,
+						isAuthenticated: !!user,
+					})
 				},
 				onError: (error) => {
 					console.error('Auth check failed:', error)
 					setAuthState({
-						user: null,
+						user: undefined,
 						isLoading: false,
 						isAuthenticated: false,
 					})
@@ -67,14 +64,18 @@ export function useAuth() {
 								isLoading: false,
 								isAuthenticated: true,
 							})
+						} else {
+							setAuthState({
+								user: undefined,
+								isLoading: false,
+								isAuthenticated: false,
+							})
 						}
-
-						return { success: false, message: 'Login failed' }
 					},
 					onError: (error) => {
 						console.error('Login failed:', error)
 						setAuthState({
-							user: null,
+							user: undefined,
 							isLoading: false,
 							isAuthenticated: false,
 						})
@@ -92,7 +93,7 @@ export function useAuth() {
 				onSuccess: () => {
 					console.log('logout successful')
 					setAuthState({
-						user: null,
+						user: undefined,
 						isLoading: false,
 						isAuthenticated: false,
 					})
@@ -101,7 +102,7 @@ export function useAuth() {
 				onError: (error) => {
 					console.error('Logout failed:', error)
 					setAuthState({
-						user: null,
+						user: undefined,
 						isLoading: false,
 						isAuthenticated: false,
 					})

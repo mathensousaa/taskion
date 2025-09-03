@@ -12,6 +12,8 @@ interface PendingTask {
 	id: string
 	data: TaskCreationInput
 	isSubmitting: boolean
+	hasError?: boolean
+	errorMessage?: string
 }
 
 export function NewTasksList() {
@@ -38,9 +40,29 @@ export function NewTasksList() {
 				prev.map((task) => (task.id === pendingTaskId ? { ...task, isSubmitting: true } : task)),
 			)
 
+			// Set a timeout to prevent infinite loading state
+			const timeoutId = setTimeout(() => {
+				setPendingTasks((prev) =>
+					prev.map((task) =>
+						task.id === pendingTaskId
+							? {
+									...task,
+									isSubmitting: false,
+									hasError: true,
+									errorMessage: 'Task creation timeout',
+								}
+							: task,
+					),
+				)
+				toast.error('Task creation timeout', {
+					description: 'The task creation is taking longer than expected. Please try again.',
+				})
+			}, 30000) // 30 second timeout
+
 			createTask(data, {
 				onSuccess: (newTask) => {
-					// Remove the pnding task and add the real task.
+					clearTimeout(timeoutId)
+					// Remove the pending task and add the real task.
 					setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
 					setShowAddButton(true)
 
@@ -53,10 +75,13 @@ export function NewTasksList() {
 					})
 				},
 				onError: (error) => {
-					// Reset the pending task to allow retry.
+					clearTimeout(timeoutId)
+					// Set error state to allow retry.
 					setPendingTasks((prev) =>
 						prev.map((task) =>
-							task.id === pendingTaskId ? { ...task, isSubmitting: false } : task,
+							task.id === pendingTaskId
+								? { ...task, isSubmitting: false, hasError: true, errorMessage: error.message }
+								: task,
 						),
 					)
 					toast.error('Error creating task', {
@@ -73,6 +98,17 @@ export function NewTasksList() {
 		setShowAddButton(true)
 	}, [])
 
+	const handleTaskRetry = useCallback((pendingTaskId: string) => {
+		// Reset error state and retry
+		setPendingTasks((prev) =>
+			prev.map((task) =>
+				task.id === pendingTaskId
+					? { ...task, isSubmitting: false, hasError: false, errorMessage: undefined }
+					: task,
+			),
+		)
+	}, [])
+
 	return (
 		<div className="space-y-3">
 			{/* Pending Tasks. */}
@@ -81,7 +117,10 @@ export function NewTasksList() {
 					key={pendingTask.id}
 					onSubmit={(data) => handleTaskSubmit(pendingTask.id, data)}
 					onCancel={() => handleTaskCancel(pendingTask.id)}
+					onRetry={() => handleTaskRetry(pendingTask.id)}
 					isSubmitting={pendingTask.isSubmitting}
+					hasError={pendingTask.hasError}
+					errorMessage={pendingTask.errorMessage}
 				/>
 			))}
 

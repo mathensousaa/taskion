@@ -1,5 +1,6 @@
 'use client'
 
+import { StatusBadge } from '@/components/status-badge'
 import {
 	Select,
 	SelectContent,
@@ -36,10 +37,12 @@ export function TaskStatusFilter({ selectedStatus, onStatusChange }: TaskStatusF
 					<SelectValue placeholder="All statuses" />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="all">All statuses</SelectItem>
+					<SelectItem value="all">
+						<StatusBadge name="All statuses" color="gray" />
+					</SelectItem>
 					{taskStatuses.map((status) => (
 						<SelectItem key={status.id} value={status.slug}>
-							{status.name}
+							<StatusBadge name={status.name} color={status.color} />
 						</SelectItem>
 					))}
 				</SelectContent>

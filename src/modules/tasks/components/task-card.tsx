@@ -42,11 +42,18 @@ interface TaskCardProps {
 	isDragging?: boolean
 	dragHandleProps?: Record<string, unknown>
 	className?: string
+	onTaskClick?: (taskId: string) => void
 }
 
 // Utility function to truncate text to first N words
 
-export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskCardProps) {
+export function TaskCard({
+	task,
+	isDragging,
+	dragHandleProps,
+	className,
+	onTaskClick,
+}: TaskCardProps) {
 	const [isEditingTitle, setIsEditingTitle] = useState(false)
 	const [isEditingDescription, setIsEditingDescription] = useState(false)
 	const [description, setDescription] = useState(task.description || '')
@@ -179,9 +186,20 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 
 			// Check if the click target is an interactive element
 			const target = e.target as HTMLElement
-			if (target.closest('button') || target.closest('input') || target.closest('textarea')) return
+			if (
+				target.closest('button') ||
+				target.closest('input') ||
+				target.closest('textarea') ||
+				target.closest('[role="menuitem"]') ||
+				target.closest('[data-radix-collection-item]') ||
+				target.closest('[data-state="open"]')
+			)
+				return
+
+			// Open the task detail dialog
+			onTaskClick?.(task.id)
 		},
-		[isEditingTitle, isEditingDescription],
+		[isEditingTitle, isEditingDescription, onTaskClick, task.id],
 	)
 
 	return (
@@ -190,6 +208,7 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 				variant="ghost"
 				size="icon"
 				className="-left-8 absolute top-0 z-10 size-7 shrink-0 opacity-0 hover:cursor-grab group-hover:opacity-100"
+				onClick={(e) => e.stopPropagation()}
 				{...dragHandleProps}
 			>
 				<GripVertical className="size-4 shrink-0 text-muted-foreground" />
@@ -237,7 +256,10 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={handleTitleEdit}
+								onClick={(e) => {
+									e.stopPropagation()
+									handleTitleEdit()
+								}}
 								className="px-1 py-0.5 font-medium text-base transition-colors hover:bg-accent/50"
 							>
 								{taskStatus?.slug === 'done' ? (
@@ -294,7 +316,10 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 						<Button
 							variant="ghost"
 							size="sm"
-							onClick={handleDescriptionEdit}
+							onClick={(e) => {
+								e.stopPropagation()
+								handleDescriptionEdit()
+							}}
 							className="px-1 text-muted-foreground/60 text-xs transition-colors hover:bg-accent/50 hover:text-muted-foreground"
 						>
 							+ Add description
@@ -306,16 +331,41 @@ export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskC
 				<CardAction className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-8 w-8 p-0"
+								onClick={(e) => e.stopPropagation()}
+							>
 								<MoreHorizontal className="h-4 w-4" />
 								<span className="sr-only">Open menu</span>
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={handleTitleEdit}>Edit title</DropdownMenuItem>
-							<DropdownMenuItem onClick={handleDescriptionEdit}>Edit description</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									handleTitleEdit()
+								}}
+							>
+								Edit title
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									handleDescriptionEdit()
+								}}
+							>
+								Edit description
+							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem variant="destructive" onClick={handleDelete}>
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={(e) => {
+									e.stopPropagation()
+									handleDelete()
+								}}
+							>
 								Move to trash
 							</DropdownMenuItem>
 						</DropdownMenuContent>

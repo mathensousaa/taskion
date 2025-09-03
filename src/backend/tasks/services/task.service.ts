@@ -45,9 +45,14 @@ export class TaskService {
 		})
 		const task = await this.taskRepository.create(dbInput)
 
-		const enhancedTask = await this.taskEnhancerService.enhanceTask(task)
-
-		return enhancedTask
+		try {
+			const enhancedTask = await this.taskEnhancerService.enhanceTask(task)
+			return enhancedTask
+		} catch (error) {
+			// Log the error but return the original task
+			console.warn('Task enhancement failed during creation, returning original task:', error)
+			return task
+		}
 	}
 
 	async getAllTasks(authenticatedUser: User) {
@@ -120,7 +125,6 @@ export class TaskService {
 	}
 
 	async updateTask(id: string, input: TaskUpdateInput, authenticatedUser: User) {
-		// First verify the task exists and belongs to the authenticated user
 		const existingTask = await this.taskRepository.findById(id)
 
 		if (!existingTask) {
@@ -131,14 +135,7 @@ export class TaskService {
 			throw new NotFoundError('Task not found')
 		}
 
-		// Update the task with the provided data
 		const updatedTask = await this.taskRepository.update(id, input)
-
-		if (input.title !== existingTask.title) {
-			const enhancedTask = await this.taskEnhancerService.enhanceTask(updatedTask)
-
-			return enhancedTask
-		}
 
 		return updatedTask
 	}

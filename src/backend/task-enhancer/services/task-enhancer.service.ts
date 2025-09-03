@@ -9,7 +9,20 @@ export class TaskEnhancerService {
 	) {}
 
 	async enhanceTask(task: Task): Promise<Task> {
-		const { data } = await this.n8nTaskEnhancerAdapter.enhanceTask(task)
-		return data
+		try {
+			// Add timeout to prevent hanging
+			const timeoutPromise = new Promise<never>((_, reject) => {
+				setTimeout(() => reject(new Error('Task enhancement timeout')), 10000) // 10 second timeout
+			})
+
+			const enhancementPromise = this.n8nTaskEnhancerAdapter.enhanceTask(task)
+
+			const { data } = await Promise.race([enhancementPromise, timeoutPromise])
+			return data
+		} catch (error) {
+			// Log the error but don't fail the task creation
+			console.warn('Task enhancement failed, returning original task:', error)
+			return task
+		}
 	}
 }
