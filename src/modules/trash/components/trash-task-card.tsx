@@ -1,9 +1,9 @@
 'use client'
 
-import { Calendar, Loader2, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { Calendar, Loader2, RotateCcw, Trash2 } from 'lucide-react'
 import Markdown from 'react-markdown'
 import type { Task } from '@/backend/tasks/validation/task.schema'
+import { Highlighter } from '@/components/magicui/highlighter'
 import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,
@@ -13,16 +13,23 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn, truncateToWords } from '@/lib/utils'
-import { usePermanentlyDeleteTask } from '@/modules/trash/services/trash.service'
+import { usePermanentlyDeleteTask, useRestoreTask } from '@/modules/trash/services/trash.service'
 
 interface TrashTaskCardProps {
 	task: Task
 	onPermanentlyDelete: (taskId: string) => void
+	onRestore?: (taskId: string) => void
 	className?: string
 }
 
-export function TrashTaskCard({ task, onPermanentlyDelete, className }: TrashTaskCardProps) {
+export function TrashTaskCard({
+	task,
+	onPermanentlyDelete,
+	onRestore,
+	className,
+}: TrashTaskCardProps) {
 	const { mutate: permanentlyDeleteTask, isPending: isDeleting } = usePermanentlyDeleteTask()
+	const { mutate: restoreTask, isPending: isRestoring } = useRestoreTask()
 
 	const handlePermanentlyDelete = async () => {
 		permanentlyDeleteTask(task.id, {
@@ -31,6 +38,17 @@ export function TrashTaskCard({ task, onPermanentlyDelete, className }: TrashTas
 			},
 			onError: (error) => {
 				console.error('Failed to permanently delete task:', error)
+			},
+		})
+	}
+
+	const handleRestore = async () => {
+		restoreTask(task.id, {
+			onSuccess: () => {
+				onRestore?.(task.id)
+			},
+			onError: (error) => {
+				console.error('Failed to restore task:', error)
 			},
 		})
 	}
@@ -57,9 +75,11 @@ export function TrashTaskCard({ task, onPermanentlyDelete, className }: TrashTas
 			<div className="space-y-3">
 				{/* Title */}
 				<div className="min-h-[24px]">
-					<div className="font-medium text-base text-muted-foreground line-through">
-						{task.title}
-					</div>
+					<Highlighter action="strike-through" strokeWidth={1.5} iterations={1} color="#c96442">
+						<div className="font-medium text-base text-muted-foreground line-through">
+							{task.title}
+						</div>
+					</Highlighter>
 				</div>
 
 				{/* Description */}
@@ -88,6 +108,20 @@ export function TrashTaskCard({ task, onPermanentlyDelete, className }: TrashTas
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
+						<DropdownMenuItem onClick={handleRestore} disabled={isRestoring}>
+							{isRestoring ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Restoring...
+								</>
+							) : (
+								<>
+									<RotateCcw className="mr-2 h-4 w-4" />
+									Restore Task
+								</>
+							)}
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={handlePermanentlyDelete}
 							className="text-destructive focus:text-destructive"

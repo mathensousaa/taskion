@@ -202,6 +202,26 @@ export class TaskService {
 		await this.taskRepository.permanentlyDeleteAllByUserId(authenticatedUser.id)
 	}
 
+	async restoreTask(id: string, authenticatedUser: User) {
+		// First verify the task exists, is soft-deleted, and belongs to the authenticated user
+		const existingTask = await this.taskRepository.findByIdIncludingDeleted(id)
+
+		if (!existingTask) {
+			throw new NotFoundError('Task not found')
+		}
+
+		if (existingTask.user_id !== authenticatedUser.id) {
+			throw new NotFoundError('Task not found')
+		}
+
+		if (!existingTask.deleted_at) {
+			throw new NotFoundError('Task is not in trash')
+		}
+
+		// Restore the task by setting deleted_at to null
+		return await this.taskRepository.restore(id)
+	}
+
 	async toggleTaskStatus(id: string, authenticatedUser: User) {
 		// First verify the task exists and belongs to the authenticated user
 		const existingTask = await this.taskRepository.findById(id)

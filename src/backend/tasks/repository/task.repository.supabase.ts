@@ -360,4 +360,17 @@ export class TaskRepositorySupabase implements ITaskRepository {
 
 		if (error) throw error
 	}
+
+	async restore(id: string): Promise<Task> {
+		const { data, error } = await supabase
+			.from('tasks')
+			.update({ deleted_at: null })
+			.eq('id', id)
+			.select()
+			.single()
+
+		if (error) throw error
+
+		return TaskSchema.parse(data)
+	}
 }

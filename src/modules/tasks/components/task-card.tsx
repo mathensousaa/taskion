@@ -8,6 +8,7 @@ import Markdown from 'react-markdown'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import type { Task, TaskUpdateInput } from '@/backend/tasks/validation/task.schema'
+import { Highlighter } from '@/components/magicui/highlighter'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction } from '@/components/ui/card'
 import {
@@ -21,6 +22,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn, truncateToWords } from '@/lib/utils'
+import { useGetTaskStatusById } from '@/modules/task-status/services'
 import TaskStatusToggleButton from '@/modules/tasks/components/task-status-toggle-button'
 import { useDeleteTask, useUpdateTask } from '@/modules/tasks/services'
 
@@ -37,10 +39,6 @@ type TaskTitleFormData = z.infer<typeof TaskTitleSchema>
 
 interface TaskCardProps {
 	task: Task
-	onUpdate: (updatedTask: Task) => void
-	onDelete: (taskId: string) => void
-	onReorder: (taskId: string, newOrder: number) => void
-	onClick: (taskId: string) => void
 	isDragging?: boolean
 	dragHandleProps?: Record<string, unknown>
 	className?: string
@@ -48,24 +46,17 @@ interface TaskCardProps {
 
 // Utility function to truncate text to first N words
 
-export function TaskCard({
-	task,
-	onUpdate,
-	onDelete,
-	onClick,
-	isDragging,
-	dragHandleProps,
-	className,
-}: TaskCardProps) {
+export function TaskCard({ task, isDragging, dragHandleProps, className }: TaskCardProps) {
 	const [isEditingTitle, setIsEditingTitle] = useState(false)
 	const [isEditingDescription, setIsEditingDescription] = useState(false)
 	const [description, setDescription] = useState(task.description || '')
 	const titleInputRef = useRef<HTMLInputElement>(null)
 	const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null)
 
+	const { data: taskStatus } = useGetTaskStatusById(task.status_id)
+
 	const { mutate: updateTask, isPending: isUpdating } = useUpdateTask(task.id, {
-		onSuccess: (updatedTask) => {
-			onUpdate(updatedTask)
+		onSuccess: () => {
 			setIsEditingTitle(false)
 			setIsEditingDescription(false)
 			toast('Success!', {
@@ -81,7 +72,7 @@ export function TaskCard({
 
 	const { mutate: deleteTask } = useDeleteTask(task.id, {
 		onSuccess: () => {
-			onDelete(task.id)
+			console.log('deleteTask onSuccess')
 			toast('Success!', {
 				description: (
 					<span>
@@ -177,10 +168,8 @@ export function TaskCard({
 			// Check if the click target is an interactive element
 			const target = e.target as HTMLElement
 			if (target.closest('button') || target.closest('input') || target.closest('textarea')) return
-
-			onClick(task.id)
 		},
-		[isEditingTitle, isEditingDescription, onClick, task.id],
+		[isEditingTitle, isEditingDescription],
 	)
 
 	return (
@@ -239,7 +228,18 @@ export function TaskCard({
 								onClick={handleTitleEdit}
 								className="px-1 py-0.5 font-medium text-base transition-colors hover:bg-accent/50"
 							>
-								{task.title}
+								{taskStatus?.slug === 'done' ? (
+									<Highlighter
+										action="strike-through"
+										strokeWidth={1.5}
+										iterations={1}
+										color="#c96442"
+									>
+										{task.title}
+									</Highlighter>
+								) : (
+									task.title
+								)}
 							</Button>
 						)}
 					</div>

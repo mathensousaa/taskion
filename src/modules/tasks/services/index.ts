@@ -17,7 +17,7 @@ import type {
 import { api } from '@/lib/axios'
 import { queryClient } from '@/lib/react-query'
 import { queryKeyToUrl } from '@/lib/react-query/helpers'
-import { isQueryParam, parseResponseData } from '@/lib/utils'
+import { parseResponseData } from '@/lib/utils'
 import {
 	keyGetTaskById,
 	keyListAllTasks,
@@ -86,6 +86,17 @@ export const useDeleteTask = (
 ) =>
 	useMutation({
 		mutationFn: () => api.delete(`/tasks/${id}`).then(parseResponseData<void>),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: keyGetTaskById(id),
+			})
+
+			console.log('invalidateQueries')
+
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
 		...options,
 	})
 
@@ -115,7 +126,7 @@ export const useToggleTaskStatus = (
 			})
 
 			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && isQueryParam(query.queryKey[1]),
+				predicate: (query) => query.queryKey[0] === 'tasks',
 			})
 		},
 		...options,

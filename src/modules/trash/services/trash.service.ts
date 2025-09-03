@@ -52,3 +52,23 @@ export const useEmptyTrash = (
 		},
 		...options,
 	})
+
+export const useRestoreTask = (
+	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, string>,
+) =>
+	useMutation({
+		mutationFn: (id: string) =>
+			api.post(`/trash/${id}/restore`).then((r) => parseResponseData<Task>(r)),
+		onSuccess: (_, id) => {
+			// Remove the task from trash list
+			queryClient.setQueryData<Task[]>(keyListTrash(), (old: Task[] | undefined) =>
+				old ? old.filter((task) => task.id !== id) : [],
+			)
+
+			// Invalidate tasks list to show the restored task
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks',
+			})
+		},
+		...options,
+	})

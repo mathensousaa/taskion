@@ -138,6 +138,10 @@ export function TrashList() {
 								openDeleteTaskDialog(taskToDelete)
 							}
 						}}
+						onRestore={() => {
+							// Task will be automatically removed from the list by the mutation
+							// No additional action needed here
+						}}
 					/>
 				))}
 			</div>
