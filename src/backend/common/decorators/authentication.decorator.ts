@@ -20,13 +20,12 @@ interface AuthenticatedUserResult {
 }
 
 // Zod schemas
-const ApiKeyBypassSchema = z.object({
-	user_id: z.uuid('Invalid user_id format'),
-})
-
 const EmailTokenSchema = z.object({
 	user_email: z.email('Invalid email format'),
 })
+
+// Schema for validating user_id from multiple sources
+const UserIdSchema = z.string().uuid('Invalid user_id format')
 
 // No schema needed for API key only authentication
 
@@ -42,7 +41,10 @@ const EmailTokenSchema = z.object({
  *    - Automatically fetches and validates the user from the database
  * 3. API key + user_id authentication: @IsAuthenticated({ allowApiKeyWithUserId: true })
  *    - Client must provide valid x-api-key header
- *    - Request body must contain valid user_id (UUID format)
+ *    - user_id can be provided in multiple ways (in order of priority):
+ *      1. Request body (for POST/PUT/PATCH requests): { "user_id": "uuid" }
+ *      2. Query parameters (for GET requests): ?user_id=uuid
+ *      3. Headers: x-user-id: uuid
  *    - Automatically fetches and validates the user from the database
  * 4. API key only authentication: @IsAuthenticated({ allowApiKeyOnly: true })
  *    - Client must provide valid x-api-key header
@@ -243,12 +245,47 @@ async function validateAndFetchUserFromEmailBody(request: Request): Promise<User
 }
 
 /**
- * Validate request body and fetch user by user_id
+ * Validate and fetch user by user_id from multiple sources (body, query params, headers)
+ * Priority order: 1. Request body, 2. Query parameters, 3. Headers
  */
 async function validateAndFetchUserFromBody(request: Request): Promise<User> {
 	try {
-		const body = await request.json()
-		const { user_id } = ApiKeyBypassSchema.parse(body)
+		let user_id: string | null = null
+		let body: any = null
+
+		// Try to get user_id from request body first (for POST/PUT/PATCH requests)
+		try {
+			body = await request.json()
+			if (body && typeof body === 'object' && body.user_id) {
+				user_id = UserIdSchema.parse(body.user_id)
+			}
+		} catch {
+			// Body parsing failed or no body, continue to other sources
+		}
+
+		// If not found in body, try query parameters (for GET requests)
+		if (!user_id) {
+			const url = new URL(request.url)
+			const queryUserId = url.searchParams.get('user_id')
+			if (queryUserId) {
+				user_id = UserIdSchema.parse(queryUserId)
+			}
+		}
+
+		// If still not found, try headers (for any request type)
+		if (!user_id) {
+			const headerUserId = request.headers.get('x-user-id')
+			if (headerUserId) {
+				user_id = UserIdSchema.parse(headerUserId)
+			}
+		}
+
+		// If no user_id found in any source, throw error
+		if (!user_id) {
+			throw new UnauthorizedError(
+				'user_id is required for API key authentication. Provide it in request body, query parameters (?user_id=...), or x-user-id header',
+			)
+		}
 
 		const userRepository = container.resolve<IUserRepository>('IUserRepository')
 		const user = await userRepository.findById(user_id)
@@ -257,21 +294,23 @@ async function validateAndFetchUserFromBody(request: Request): Promise<User> {
 			throw new NotFoundError('User not found with provided user_id')
 		}
 
-		// Restore request body for controller access
-		restoreRequestBody(request, body)
+		// Restore request body for controller access if it was consumed
+		if (body) {
+			restoreRequestBody(request, body)
+		}
 
 		return user
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			const errorMessages = error.issues.map((issue: z.ZodIssue) => issue.message).join(', ')
-			throw new UnauthorizedError(`Invalid request body: ${errorMessages}`)
+			throw new UnauthorizedError(`Invalid user_id format: ${errorMessages}`)
 		}
 
-		if (error instanceof UnauthorizedError) {
+		if (error instanceof UnauthorizedError || error instanceof NotFoundError) {
 			throw error
 		}
 
-		throw new UnauthorizedError('Failed to validate user_id for API key bypass')
+		throw new UnauthorizedError('Failed to validate user_id for API key authentication')
 	}
 }
 
