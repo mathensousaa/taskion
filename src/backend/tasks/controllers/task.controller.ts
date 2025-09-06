@@ -11,6 +11,7 @@ import { TaskEnhancerService } from '@/backend/task-enhancer/services/task-enhan
 import { TaskService } from '@/backend/tasks/services/task.service'
 import {
 	TaskCreationSchema,
+	TaskStatusUpdateBySlugSchema,
 	TasksReorderSchema,
 	TaskUpdateSchema,
 } from '@/backend/tasks/validation/task.schema'
@@ -219,6 +220,33 @@ export class TaskController {
 			)
 		} catch (error) {
 			return ErrorHandler.handle(error, 'TaskController.toggleStatus')
+		}
+	}
+
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
+	async updateStatusBySlug(req: Request, id: string) {
+		try {
+			const validatedId = validateIdParam(id)
+
+			const body = await req.json()
+			const data = TaskStatusUpdateBySlugSchema.parse(body)
+
+			const task = await this.service.updateTaskStatusBySlug(
+				validatedId,
+				data.status_slug,
+				req.user!,
+			)
+
+			return NextResponse.json(
+				{
+					success: true,
+					message: 'Task status successfully updated',
+					data: task,
+				},
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TaskController.updateStatusBySlug')
 		}
 	}
 }

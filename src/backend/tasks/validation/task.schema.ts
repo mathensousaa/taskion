@@ -79,3 +79,10 @@ export type TaskReorderInput = z.infer<typeof TaskReorderSchema>
 export const TasksReorderSchema = z.array(TaskReorderSchema)
 
 export type TasksReorderInput = z.infer<typeof TasksReorderSchema>
+
+// Task status update by slug schema
+export const TaskStatusUpdateBySlugSchema = z.object({
+	status_slug: z.string().min(1, 'Status slug is required'),
+})
+
+export type TaskStatusUpdateBySlugInput = z.infer<typeof TaskStatusUpdateBySlugSchema>

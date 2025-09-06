@@ -5,7 +5,6 @@ import { Calendar, Clock, Flag, Hash, Lock, Plus, Sparkles, Star, User } from 'l
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Markdown from 'react-markdown'
-import { toast } from 'sonner'
 import { z } from 'zod'
 import type { Task, TaskUpdateInput } from '@/backend/tasks/validation/task.schema'
 import { QueryHandler } from '@/components/query-handler'
@@ -18,6 +17,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import TaskStatusToggleButton from '@/modules/tasks/components/task-status-toggle-button'
 import { useEnhanceTask, useGetTaskById, useUpdateTask } from '@/modules/tasks/services'
+import {
+	showTaskEnhanceError,
+	showTaskEnhanceSuccess,
+	showTaskUpdateError,
+	showTaskUpdateSuccess,
+} from '@/modules/tasks/utils'
 
 const TaskTitleSchema = z.object({
 	title: z
@@ -71,14 +76,10 @@ function TaskDetailContent({ task }: { task: Task }) {
 			setShowFadeIn(true)
 			setTimeout(() => setShowFadeIn(false), 1000)
 
-			toast.success('Task enhanced successfully!', {
-				description: 'The task description has been improved with AI.',
-			})
+			showTaskEnhanceSuccess()
 		},
 		onError: (error) => {
-			toast.error('Failed to enhance task', {
-				description: error.message || 'An error occurred while enhancing the task.',
-			})
+			showTaskEnhanceError(error)
 		},
 	})
 
@@ -124,14 +125,10 @@ function TaskDetailContent({ task }: { task: Task }) {
 			updateTask(updateData, {
 				onSuccess: () => {
 					setIsEditingTitle(false)
-					toast.success('Task updated successfully!', {
-						description: 'The task title has been updated.',
-					})
+					showTaskUpdateSuccess()
 				},
 				onError: (error) => {
-					toast.error('Error updating task', {
-						description: error.message,
-					})
+					showTaskUpdateError(error)
 				},
 			})
 		},
@@ -175,7 +172,8 @@ function TaskDetailContent({ task }: { task: Task }) {
 													<Input
 														{...field}
 														ref={titleInputRef}
-														className="border-none bg-transparent p-0 font-bold font-serif text-2xl text-foreground leading-none shadow-none focus-visible:ring-0"
+														variant="transparent"
+														className="border-none bg-transparent p-0 font-bold font-serif leading-none shadow-none focus-visible:ring-0 md:text-2xl"
 														onKeyDown={handleKeyDown}
 														disabled={isUpdating}
 													/>
@@ -244,9 +242,9 @@ function TaskDetailContent({ task }: { task: Task }) {
 								showFadeIn && 'fade-in-0 slide-in-from-bottom-2 animate-in',
 							)}
 						>
-							<p className="text-foreground text-xs leading-relaxed">
+							<div className="text-foreground text-xs leading-relaxed">
 								<Markdown>{task.description}</Markdown>
-							</p>
+							</div>
 						</div>
 					) : (
 						<p className="text-muted-foreground text-sm italic">No description</p>

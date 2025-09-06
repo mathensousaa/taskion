@@ -129,7 +129,7 @@ export const useToggleTaskStatus = (
 	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, void>,
 ) =>
 	useMutation({
-		mutationFn: () => api.patch(`/tasks/${id}/toggle-status`).then(parseResponseData<Task>),
+		mutationFn: () => api.patch(`/tasks/${id}/status/toggle`).then(parseResponseData<Task>),
 		onSuccess: (data) => {
 			queryClient.setQueryData(keyGetTaskById(id), (oldData: Task) => {
 				return {
@@ -145,6 +145,22 @@ export const useToggleTaskStatus = (
 		...options,
 	})
 
+export const useUpdateTaskStatusBySlug = (
+	id: string,
+	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, string>,
+) =>
+	useMutation({
+		mutationFn: (statusSlug: string) =>
+			api.patch(`/tasks/${id}/status`, { status_slug: statusSlug }).then(parseResponseData<Task>),
+		onSuccess: (data) => {
+			queryClient.setQueryData(keyGetTaskById(id), data)
+			queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			})
+		},
+		...options,
+	})
+
 export const useEnhanceTask = (
 	id: string,
 	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, void>,
@@ -153,6 +169,9 @@ export const useEnhanceTask = (
 		mutationFn: () => api.post(`/tasks/${id}/enhance`).then(parseResponseData<Task>),
 		onSuccess: (data) => {
 			queryClient.setQueryData(keyGetTaskById(id), data)
+			queryClient.invalidateQueries({
+				queryKey: keyGetTaskById(id),
+			})
 			queryClient.invalidateQueries({
 				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})

@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import { useCreateTask } from '@/modules/tasks/services'
+import { showTaskCreateError, showTaskCreateSuccess } from '@/modules/tasks/utils'
 import { NewTaskCard } from './new-task-card'
 
 interface PendingTask {
@@ -66,13 +67,7 @@ export function NewTasksList() {
 					setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
 					setShowAddButton(true)
 
-					toast('Success!', {
-						description: (
-							<span>
-								Task <strong>"{newTask.title}"</strong> created.
-							</span>
-						),
-					})
+					showTaskCreateSuccess(newTask.title)
 				},
 				onError: (error) => {
 					clearTimeout(timeoutId)
@@ -84,9 +79,7 @@ export function NewTasksList() {
 								: task,
 						),
 					)
-					toast.error('Error creating task', {
-						description: error.message,
-					})
+					showTaskCreateError(error)
 				},
 			})
 		},
