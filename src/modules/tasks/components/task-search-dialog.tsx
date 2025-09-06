@@ -85,7 +85,7 @@ export function TaskSearchDialog({ open, onOpenChange }: TaskSearchDialogProps) 
 						placeholder="Search tasks by title or description..."
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
-						className="border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+						className="border-0 bg-transparent focus:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent"
 					/>
 				</div>
 				<CommandList>

@@ -13,7 +13,7 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { QueryHandler } from '@/components/query-handler'
 import { useListAllTasks } from '@/modules/tasks/services'
 import { EmptyState } from './empty-state'
@@ -21,16 +21,20 @@ import { ErrorState } from './error-state'
 import { LoadingState } from './loading-state'
 import { NewTasksList } from './new-tasks-list'
 import { SortableTaskCard } from './sortable-task-card'
-import { TaskDetailDialog } from './task-detail-dialog'
 
 interface TaskListProps {
 	status?: string
 }
 
 export function TaskList({ status }: TaskListProps) {
-	const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+	const router = useRouter()
 
 	const { data: tasks, status: queryStatus, error, isLoading } = useListAllTasks({ status })
+
+	const handleTaskClick = (taskId: string) => {
+		// Navigate to the same page with task query parameter
+		router.push(`/?task=${taskId}`)
+	}
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -66,7 +70,7 @@ export function TaskList({ status }: TaskListProps) {
 							>
 								<div className="space-y-3">
 									{tasks?.map((task) => (
-										<SortableTaskCard key={task.id} task={task} onTaskClick={setSelectedTaskId} />
+										<SortableTaskCard key={task.id} task={task} onTaskClick={handleTaskClick} />
 									))}
 								</div>
 							</SortableContext>
@@ -88,11 +92,6 @@ export function TaskList({ status }: TaskListProps) {
 						<NewTasksList />
 					</div>
 				}
-			/>
-			<TaskDetailDialog
-				taskId={selectedTaskId}
-				open={!!selectedTaskId}
-				onOpenChange={(open) => !open && setSelectedTaskId(null)}
 			/>
 		</>
 	)
