@@ -50,15 +50,15 @@ export function TaskCardContent({
 	return (
 		<Card
 			className={cn(
-				'group relative grow cursor-pointer gap-3 rounded-lg border bg-card p-3 shadow-none transition-all hover:shadow-md',
+				'group relative grow cursor-pointer gap-3 overflow-hidden rounded-lg border bg-card p-3 shadow-none transition-all hover:shadow-md',
 				className,
 			)}
 			onClick={onClick}
 			onDoubleClick={onDoubleClick}
 		>
-			<div className="flex items-center gap-2">
+			<div className="flex items-center gap-2 overflow-hidden">
 				<TaskStatusToggleButton taskId={task.id} taskStatusId={task.status_id} />
-				<div className="w-full">
+				<div className="w-full min-w-0 max-w-full grow overflow-hidden">
 					<TaskTitleEditor
 						task={task}
 						taskStatusSlug={taskStatusSlug}

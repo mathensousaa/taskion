@@ -91,7 +91,6 @@ export function useAuth() {
 			{},
 			{
 				onSuccess: () => {
-					console.log('logout successful')
 					setAuthState({
 						user: undefined,
 						isLoading: false,

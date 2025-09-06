@@ -39,19 +39,22 @@ export function TaskTitleEditor({
 	if (isEditing) {
 		return (
 			<Form {...titleForm}>
-				<form onSubmit={titleForm.handleSubmit(onSave)} className="flex w-full items-center gap-2">
+				<form
+					onSubmit={titleForm.handleSubmit(onSave)}
+					className="flex w-full max-w-full items-center gap-2 overflow-hidden"
+				>
 					<FormField
 						control={titleForm.control}
 						name="title"
 						render={({ field }) => (
-							<FormItem className="w-full flex-1">
+							<FormItem className="w-full max-w-full flex-1 overflow-hidden">
 								<FormControl>
 									<Input
 										{...field}
 										ref={titleInputRef}
 										onKeyDown={(e) => onKeyDown(e, true)}
 										onBlur={titleForm.handleSubmit(onSave)}
-										className="h-8 px-1 py-0.5 font-medium md:text-base"
+										className="h-8 truncate px-1 py-0.5 font-medium md:text-base"
 										variant="transparent"
 										disabled={isUpdating}
 										autoCorrect="off"
@@ -75,7 +78,7 @@ export function TaskTitleEditor({
 				e.stopPropagation()
 				onEdit()
 			}}
-			className="px-1 py-0.5 font-medium text-base transition-colors hover:bg-accent/50"
+			className="block min-w-0 max-w-full justify-start truncate px-1 py-0.5 text-left font-medium text-base transition-colors hover:bg-accent/50"
 		>
 			{taskStatusSlug === 'done' ? (
 				<Highlighter action="strike-through" strokeWidth={1.5} iterations={1} color="#c96442">
