@@ -1,22 +1,15 @@
 'use client'
 
 import { Standard } from '@typebot.io/react'
-import { PageContent, PageHeader, PageRoot, PageTitle } from '@/components/ui/page'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { PageContent } from '@/components/ui/page'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useGetMe } from '@/modules'
 
 export default function Chat() {
 	return (
-		<PageRoot>
-			<PageHeader>
-				<SidebarTrigger />
-				<PageTitle>Taskion AI Assistant</PageTitle>
-			</PageHeader>
-			<PageContent className="min-h-svh">
-				<ChatComponent />
-			</PageContent>
-		</PageRoot>
+		<PageContent className="min-h-svh">
+			<ChatComponent />
+		</PageContent>
 	)
 }
 

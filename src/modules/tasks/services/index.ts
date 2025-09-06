@@ -52,6 +52,24 @@ export const useListAllTasks = (
 		...options,
 	})
 
+export const useListRecentTasks = (
+	limit: number = 5,
+	options?: UseQueryOptions<Task[], AxiosError<ErrorResponse>, Task[]>,
+): UseQueryResult<Task[], AxiosError<ErrorResponse>> =>
+	useQuery({
+		queryKey: ['tasks', 'recent', limit],
+		queryFn: () =>
+			api
+				.get(`/tasks`)
+				.then((r) => parseResponseData<Task[]>(r))
+				.then((tasks) =>
+					tasks
+						.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+						.slice(0, limit),
+				),
+		...options,
+	})
+
 export const useGetTaskById = (
 	id: string | undefined,
 	options?: UseQueryOptions<Task, AxiosError<ErrorResponse>, Task>,
@@ -88,6 +106,7 @@ export const useUpdateTask = (
 			})
 
 			queryClient.invalidateQueries({ queryKey: keyGetTaskById(id) })
+			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
 		},
 		...options,
 	})
@@ -106,6 +125,8 @@ export const useDeleteTask = (
 			queryClient.invalidateQueries({
 				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})
+
+			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
 		},
 		...options,
 	})
@@ -175,6 +196,7 @@ export const useEnhanceTask = (
 			queryClient.invalidateQueries({
 				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})
+			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
 		},
 		...options,
 	})

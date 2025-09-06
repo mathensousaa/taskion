@@ -259,7 +259,7 @@ function TaskDetailContent({ task }: { task: Task }) {
 						className="h-auto p-0 text-muted-foreground text-sm hover:text-foreground"
 					>
 						<Plus className="mr-2 h-4 w-4" />
-						Adicionar subtarefa
+						Add subtask
 					</Button>
 					{/* Placeholder for subtasks - will be implemented later */}
 					<div className="text-muted-foreground text-xs">No subtasks yet</div>
@@ -276,7 +276,7 @@ function TaskDetailContent({ task }: { task: Task }) {
 							<div className="rounded-lg bg-muted/50 p-3">
 								<input
 									type="text"
-									placeholder="Comentar"
+									placeholder="Comment"
 									className="w-full bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
 									disabled
 								/>
@@ -292,30 +292,30 @@ function TaskDetailContent({ task }: { task: Task }) {
 			<div className="w-80 space-y-6 bg-muted/30 p-6">
 				{/* Project */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Projeto</div>
+					<div className="font-medium text-muted-foreground text-xs">Project</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Hash className="h-4 w-4 text-muted-foreground" />
-						<span className="text-foreground">Meu trabalho</span>
+						<span className="text-foreground">My work</span>
 						<User className="h-3 w-3 text-pink-500" />
 						<span className="text-foreground">/</span>
-						<span className="text-foreground">Rotinas</span>
+						<span className="text-foreground">Routines</span>
 						<Calendar className="h-3 w-3 text-blue-500" />
 					</div>
 				</div>
 
 				{/* Date */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Data</div>
+					<div className="font-medium text-muted-foreground text-xs">Date</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Calendar className="h-4 w-4 text-green-500" />
-						<span className="text-foreground">Hoje 5 PM</span>
+						<span className="text-foreground">Today 5 PM</span>
 						<Clock className="h-3 w-3 text-muted-foreground" />
 					</div>
 				</div>
 
 				{/* Deadline */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Prazo</div>
+					<div className="font-medium text-muted-foreground text-xs">Deadline</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Star className="h-4 w-4 text-orange-500" />
 						<Lock className="h-3 w-3 text-muted-foreground" />
@@ -324,7 +324,7 @@ function TaskDetailContent({ task }: { task: Task }) {
 
 				{/* Priority */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Prioridade</div>
+					<div className="font-medium text-muted-foreground text-xs">Priority</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Flag className="h-4 w-4 text-blue-500" />
 						<span className="text-foreground">P3</span>
@@ -333,7 +333,7 @@ function TaskDetailContent({ task }: { task: Task }) {
 
 				{/* Labels */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Etiquetas</div>
+					<div className="font-medium text-muted-foreground text-xs">Labels</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Plus className="h-4 w-4 text-muted-foreground" />
 					</div>
@@ -341,10 +341,10 @@ function TaskDetailContent({ task }: { task: Task }) {
 
 				{/* Reminders */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Lembretes</div>
+					<div className="font-medium text-muted-foreground text-xs">Reminders</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Star className="h-4 w-4 text-orange-500" />
-						<span className="text-foreground">No horário da tarefa</span>
+						<span className="text-foreground">At task time</span>
 						<Clock className="h-3 w-3 text-muted-foreground" />
 						<Lock className="h-3 w-3 text-muted-foreground" />
 					</div>
@@ -352,7 +352,7 @@ function TaskDetailContent({ task }: { task: Task }) {
 
 				{/* Location */}
 				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Local</div>
+					<div className="font-medium text-muted-foreground text-xs">Location</div>
 					<div className="flex items-center gap-2 text-sm">
 						<Star className="h-4 w-4 text-orange-500" />
 						<Lock className="h-3 w-3 text-muted-foreground" />
