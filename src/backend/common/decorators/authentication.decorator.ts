@@ -200,8 +200,6 @@ async function authenticateViaApiKeyOnly(args: any[]): Promise<boolean> {
 
 	const apiKey = request.headers.get('x-api-key')
 
-	console.log('apiKey', apiKey)
-
 	if (!apiKey || apiKey !== process.env.TASK_ENHANCER_SECRET) {
 		return false
 	}

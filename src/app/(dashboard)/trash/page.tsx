@@ -1,10 +1,19 @@
-import { PageContent } from '@/components/ui/page'
+import { PageContent, PageHeader, PageRoot, PageTitle } from '@/components/ui/page'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { TrashList } from '@/modules/trash/components/trash-list'
 
 export default function TrashPage() {
 	return (
-		<PageContent className="mx-auto max-w-3xl px-4 py-6">
-			<TrashList />
-		</PageContent>
+		<PageRoot>
+			<PageHeader>
+				<SidebarTrigger />
+				<PageTitle>Trash</PageTitle>
+			</PageHeader>
+			<PageContent className="p-6">
+				<div className="space-y-6">
+					<TrashList />
+				</div>
+			</PageContent>
+		</PageRoot>
 	)
 }

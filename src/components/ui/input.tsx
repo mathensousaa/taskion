@@ -10,7 +10,7 @@ const inputVariants = cva(
 				default:
 					'border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground',
 				transparent:
-					'rounded-none border-none p-0 shadow-none hover:bg-transparent focus-visible:border-0 focus-visible:ring-0',
+					'border-none p-0 shadow-none hover:bg-transparent focus-visible:border-0 focus-visible:ring-0',
 			},
 		},
 		defaultVariants: {

@@ -15,7 +15,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<ThemeProvider defaultTheme="light" storageKey="ui-theme">
+		<ThemeProvider defaultTheme="system" storageKey="ui-theme">
 			<ReactQueryProvider>
 				<html lang="en">
 					<body className={`antialiased`}>
