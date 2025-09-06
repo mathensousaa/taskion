@@ -136,6 +136,28 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "update task status by slug",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status_slug\": \"in_progress\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/tasks/task-id-here/status",
+							"host": ["{{api_url}}"],
+							"path": ["tasks", "task-id-here", "status"]
+						}
+					},
+					"response": []
 				}
 			]
 		},

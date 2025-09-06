@@ -247,7 +247,7 @@ export class TaskService {
 
 		// Determine the new status based on current status slug
 		let newStatusSlug: string
-		if (currentStatus.slug === 'not_started') {
+		if (currentStatus.slug === 'not_started' || currentStatus.slug === 'in_progress') {
 			newStatusSlug = 'done'
 		} else if (currentStatus.slug === 'done') {
 			newStatusSlug = 'not_started'
@@ -264,5 +264,27 @@ export class TaskService {
 
 		// Update the task with the new status
 		return await this.taskRepository.update(id, { status_id: newStatus.id })
+	}
+
+	async updateTaskStatusBySlug(id: string, statusSlug: string, authenticatedUser: User) {
+		// First verify the task exists and belongs to the authenticated user
+		const existingTask = await this.taskRepository.findById(id)
+
+		if (!existingTask) {
+			throw new NotFoundError('Task not found')
+		}
+
+		if (existingTask.user_id !== authenticatedUser.id) {
+			throw new NotFoundError('Not found')
+		}
+
+		// Get the task status by slug
+		const taskStatus = await this.taskStatusService.getTaskStatusBySlug(statusSlug)
+		if (!taskStatus) {
+			throw new NotFoundError(`Task status with slug '${statusSlug}' not found`)
+		}
+
+		// Update the task with the new status
+		return await this.taskRepository.update(id, { status_id: taskStatus.id })
 	}
 }

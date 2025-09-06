@@ -4,15 +4,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 import { z } from 'zod'
-import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
 import { useCreateTask } from '@/modules/tasks/services'
+import { showTaskCreateError, showTaskCreateSuccess } from '@/modules/tasks/utils'
 
 const QuickCreateTaskSchema = z.object({
 	title: z
@@ -48,21 +47,13 @@ export function QuickCreateTask({ className }: QuickCreateTaskProps) {
 				onSuccess: (newTask) => {
 					form.reset()
 					setIsExpanded(false)
-					toast('Success!', {
-						description: (
-							<span>
-								Task <strong>"{newTask.title}"</strong> created.
-							</span>
-						),
-					})
+					showTaskCreateSuccess(newTask.title)
 					queryClient.invalidateQueries({
 						predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 					})
 				},
 				onError: (error) => {
-					toast.error('Error creating task', {
-						description: error.message,
-					})
+					showTaskCreateError(error)
 				},
 			})
 		},

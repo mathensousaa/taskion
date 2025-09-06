@@ -67,6 +67,8 @@ The system is designed for **individual users** (not collaborative/multi-team).
 - `POST /tasks` – Create new task (AI-enhanced).  
 - `PATCH /tasks/:id` – Update task details.  
 - `DELETE /tasks/:id` – Soft-delete a task (moves to Trash).  
+- `PATCH /tasks/:id/status/toggle` – Toggle task status between `not_started`, `in_progress`, and `done`.  
+- `PATCH /tasks/:id/status` – Update task status by providing status slug.  
 
 ### Task Status
 - `GET /task-status` – List all available statuses.  
@@ -209,6 +211,18 @@ Content-Type: application/json
 
 {
   "title": "Study for upcoming test"
+}
+
+```
+
+### Update Task Status by Slug Request
+
+```
+PATCH /api/tasks/{task-id}/status
+Content-Type: application/json
+
+{
+  "status_slug": "in_progress"
 }
 
 ```

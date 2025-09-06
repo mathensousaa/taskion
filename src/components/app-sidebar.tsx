@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
-import { toast } from 'sonner'
 // import { NavFavorites } from "@/components/nav-favorites"
 // import { NavSecondary } from "@/components/nav-secondary"
 // import { NavWorkspaces } from "@/components/nav-workspaces"
@@ -99,6 +98,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui
 import { cn } from '@/lib/utils'
 import { NewTaskCard } from '@/modules/tasks/components/new-task-card'
 import { TaskSearchDialog } from '@/modules/tasks/components/task-search-dialog'
+import { showTaskCreateError, showTaskCreateSuccess } from '@/modules/tasks/utils'
 
 export function NavLogo() {
 	const { logout, user } = useAuth()
@@ -269,18 +269,10 @@ function AddTaskDialog({
 		createTask(data, {
 			onSuccess: (newTask) => {
 				onOpenChange(false)
-				toast('Success!', {
-					description: (
-						<span>
-							Task <strong>"{newTask.title}"</strong> created.
-						</span>
-					),
-				})
+				showTaskCreateSuccess(newTask.title)
 			},
 			onError: (error) => {
-				toast.error('Error creating task', {
-					description: error.message,
-				})
+				showTaskCreateError(error)
 			},
 		})
 	}
