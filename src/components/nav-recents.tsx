@@ -74,7 +74,7 @@ export function NavRecents() {
 							<Link href={`/?task=${task.id}`} title={task.title}>
 								<div className="flex min-w-0 flex-1 flex-col items-start">
 									<span className="w-full truncate text-sm">{truncateTitle(task.title)}</span>
-									<span className="text-[10px] text-muted-foreground">
+									<span className="text-[10px] text-muted-foreground/60">
 										{formatDistanceToNow(task.created_at, {
 											addSuffix: true,
 										})}
