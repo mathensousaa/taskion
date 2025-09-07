@@ -26,7 +26,7 @@ import {
 
 export const useListTasks = (
 	limit: number,
-	cursor?: { order: number; created_at: string; id: string },
+	cursor?: { order: string; created_at: string; id: string },
 	status?: string,
 	options?: UseQueryOptions<
 		PaginatedApiResponse<Task>,
@@ -137,11 +137,19 @@ export const useReorderTasks = (
 	useMutation({
 		mutationFn: (data: TasksReorderInput) =>
 			api.patch(`/tasks`, data).then(parseResponseData<void>),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
-			})
-		},
+		...options,
+	})
+
+export const useReorderTaskBetween = (
+	options?: UseMutationOptions<
+		Task[],
+		AxiosError<ErrorResponse>,
+		{ taskId: string; previousTaskId?: string; nextTaskId?: string }
+	>,
+) =>
+	useMutation({
+		mutationFn: (data: { taskId: string; previousTaskId?: string; nextTaskId?: string }) =>
+			api.post(`/tasks/reorder`, data).then(parseResponseData<Task[]>),
 		...options,
 	})
 

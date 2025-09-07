@@ -178,6 +178,36 @@ export class TaskController {
 	}
 
 	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
+	async reorderBetween(req: Request) {
+		try {
+			const body = await req.json()
+			const { taskId, previousTaskId, nextTaskId } = body
+
+			if (!taskId) {
+				return NextResponse.json({ success: false, message: 'taskId is required' }, { status: 400 })
+			}
+
+			const tasks = await this.service.reorderTaskBetweenTasks(
+				taskId,
+				previousTaskId || null,
+				nextTaskId || null,
+				req.user!,
+			)
+
+			return NextResponse.json(
+				{
+					success: true,
+					message: 'Task successfully reordered',
+					data: tasks,
+				},
+				{ status: 200 },
+			)
+		} catch (error) {
+			return ErrorHandler.handle(error, 'TaskController.reorderBetween')
+		}
+	}
+
+	@IsAuthenticated({ allowApiKeyWithUserId: true, allowEmailToken: true })
 	async enhance(req: Request, id: string) {
 		try {
 			const validatedId = validateIdParam(id)

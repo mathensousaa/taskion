@@ -18,6 +18,7 @@ import {
 	type TaskUpdateInput,
 } from '@/backend/tasks/validation/task.schema'
 import type { User } from '@/backend/users/validation/user.schema'
+import { LexoRankUtils } from '@/modules/tasks/utils/lexorank-utils'
 
 @injectable()
 export class TaskService {
@@ -33,15 +34,15 @@ export class TaskService {
 
 		const statusId = input.status_id ?? (await this.taskStatusService.getDefaultStatusId())
 
-		// Get the next available order for this user
-		const maxOrder = await this.taskRepository.getMaxOrderByUserId(authenticatedUser.id)
-		const nextOrder = maxOrder + 1
+		// Get the last ordered task to determine the order
+		const lastTask = await this.taskRepository.getLastOrderedTaskByUserId(authenticatedUser.id)
+		const order = LexoRankUtils.generateOrderForNewTask(lastTask)
 
 		const dbInput = TaskDbInsertSchema.parse({
 			...taskData,
 			status_id: statusId,
 			description: input.description ?? null,
-			order: nextOrder, // Use the next available order
+			order: order,
 		})
 		const task = await this.taskRepository.create(dbInput)
 
@@ -175,6 +176,87 @@ export class TaskService {
 
 		// Perform the reordering
 		return await this.taskRepository.reorderTasks(authenticatedUser.id, reorderData)
+	}
+
+	async reorderTaskBetweenTasks(
+		taskId: string,
+		previousTaskId: string | null,
+		nextTaskId: string | null,
+		authenticatedUser: User,
+	) {
+		// Verify the task exists and belongs to the user
+		const task = await this.taskRepository.findById(taskId)
+		if (!task) {
+			throw new NotFoundError('Task not found')
+		}
+		if (task.user_id !== authenticatedUser.id) {
+			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+		}
+
+		// Get the previous and next tasks if they exist
+		let previousTask: Task | null = null
+		let nextTask: Task | null = null
+
+		if (previousTaskId) {
+			previousTask = await this.taskRepository.findById(previousTaskId)
+			if (!previousTask || previousTask.user_id !== authenticatedUser.id) {
+				throw new NotFoundError('Previous task not found or access denied')
+			}
+		}
+
+		if (nextTaskId) {
+			nextTask = await this.taskRepository.findById(nextTaskId)
+			if (!nextTask || nextTask.user_id !== authenticatedUser.id) {
+				throw new NotFoundError('Next task not found or access denied')
+			}
+		}
+
+		// Generate the new order using LexoRank
+		const newOrder = LexoRankUtils.generateOrderBetweenTasks(previousTask, nextTask)
+
+		// Update the task's order
+		await this.taskRepository.update(taskId, { order: newOrder })
+
+		// Return all tasks in the correct order
+		return await this.taskRepository.findAllByUserId(authenticatedUser.id)
+	}
+
+	async reorderTaskToPosition(taskId: string, newPosition: number, authenticatedUser: User) {
+		// Verify the task exists and belongs to the user
+		const task = await this.taskRepository.findById(taskId)
+		if (!task) {
+			throw new NotFoundError('Task not found')
+		}
+		if (task.user_id !== authenticatedUser.id) {
+			throw new UnauthorizedError('Access denied: Task does not belong to authenticated user')
+		}
+
+		// Get all tasks for the user to determine the new order
+		const allTasks = await this.taskRepository.findAllByUserId(authenticatedUser.id)
+		// Filter out tasks with null order and sort by order
+		const validTasks = allTasks.filter((task) => task.order !== null)
+		const sortedTasks = [...validTasks].sort((a, b) => a.order.localeCompare(b.order))
+
+		// Find the current task in the sorted list
+		const currentIndex = sortedTasks.findIndex((t) => t.id === taskId)
+		if (currentIndex === -1) {
+			throw new NotFoundError('Task not found in user tasks')
+		}
+
+		// Remove the task from its current position
+		sortedTasks.splice(currentIndex, 1)
+
+		// Insert the task at the new position
+		sortedTasks.splice(newPosition, 0, task)
+
+		// Generate new LexoRank order for the moved task
+		const newOrder = LexoRankUtils.generateOrderForPosition(sortedTasks, newPosition)
+
+		// Update the task's order directly
+		await this.taskRepository.update(taskId, { order: newOrder })
+
+		// Return all tasks in the correct order
+		return await this.taskRepository.findAllByUserId(authenticatedUser.id)
 	}
 
 	async getTrash(authenticatedUser: User) {

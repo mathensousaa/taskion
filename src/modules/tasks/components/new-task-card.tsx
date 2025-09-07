@@ -114,6 +114,7 @@ export function NewTaskCard({
 												{...field}
 												ref={titleInputRef}
 												onKeyDown={handleKeyDown}
+												variant="transparent"
 												placeholder="Type a title..."
 												className={cn(
 													'h-8 border-none font-medium text-base shadow-none ring-0 focus-visible:ring-0',

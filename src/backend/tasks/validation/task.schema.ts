@@ -1,3 +1,4 @@
+import { LexoRank } from 'lexorank'
 import z from 'zod'
 
 export const TaskCreationSchema = z.object({
@@ -23,7 +24,7 @@ export const TaskUpdateSchema = z.object({
 		.optional(),
 	description: z.string().optional(),
 	status_id: z.uuid().optional(),
-	order: z.number().int().min(0).optional(),
+	order: z.string().optional(),
 })
 
 export type TaskUpdateInput = z.infer<typeof TaskUpdateSchema>
@@ -38,7 +39,7 @@ export const TaskDbInsertSchema = z.object({
 	description: z.string().nullable(),
 	user_id: z.uuid(),
 	status_id: z.uuid(),
-	order: z.number().int().min(0).default(0),
+	order: z.string().default(() => LexoRank.middle().toString()),
 })
 
 export type TaskDbInsert = z.infer<typeof TaskDbInsertSchema>
@@ -49,7 +50,7 @@ export const TaskSchema = z.object({
 	description: z.string().nullable(),
 	status_id: z.uuid(),
 	user_id: z.uuid(),
-	order: z.number().int().min(0),
+	order: z.string(),
 	created_at: z.string(),
 	deleted_at: z.string().nullable(),
 	updated_at: z.string().nullable(),
@@ -59,7 +60,7 @@ export type Task = z.infer<typeof TaskSchema>
 
 // Cursor-based pagination types
 export const CursorSchema = z.object({
-	order: z.number().int().min(0),
+	order: z.string(),
 	created_at: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
 		message: 'created_at must be a valid ISO timestamp string',
 	}),
@@ -71,7 +72,8 @@ export type Cursor = z.infer<typeof CursorSchema>
 // Reorder types
 export const TaskReorderSchema = z.object({
 	taskId: z.uuid(),
-	newOrder: z.number().int().min(0),
+	previousTaskId: z.uuid().nullable(),
+	nextTaskId: z.uuid().nullable(),
 })
 
 export type TaskReorderInput = z.infer<typeof TaskReorderSchema>
