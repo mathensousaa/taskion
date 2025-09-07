@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -135,7 +135,6 @@ export function NewTaskCard({
 									</FormItem>
 								)}
 							/>
-							{isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
 						</div>
 					</div>
 
@@ -144,13 +143,12 @@ export function NewTaskCard({
 						{/* Description Skeleton while submitting */}
 						{isSubmitting && (
 							<div className="space-y-2">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
-									<Loader2 className="h-4 w-4 animate-spin" />
-									Creating your task...
+								<div className="flex animate-pulse items-center gap-2 text-muted-foreground text-sm">
+									<Sparkles className="h-4 w-4" />
+									Enhancing your task description...
 								</div>
 								<div className="space-y-1">
-									<Skeleton className="h-3 w-2/3" />
-									<Skeleton className="h-3 w-1/2" />
+									<Skeleton className="h-20 w-full" />
 								</div>
 							</div>
 						)}
@@ -180,7 +178,9 @@ export function NewTaskCard({
 					</div>
 				</Card>
 				{/* Action Buttons */}
-				<div className="flex items-center justify-end gap-2 pt-2">
+				<div
+					className={cn('flex items-center justify-end gap-2 pt-2', isSubmitting && 'opacity-0')}
+				>
 					<Button
 						type="button"
 						variant="ghost"
