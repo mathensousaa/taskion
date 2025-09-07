@@ -26,7 +26,7 @@ const NewTaskSchema = z.object({
 type NewTaskFormData = z.infer<typeof NewTaskSchema>
 
 interface NewTaskCardProps {
-	onSubmit: (data: TaskCreationInput) => Promise<void>
+	onSubmit: (data: TaskCreationInput) => void
 	onCancel: () => void
 	onRetry?: () => void
 	isSubmitting?: boolean
@@ -54,19 +54,19 @@ export function NewTaskCard({
 		},
 	})
 
-	// Handle click outside to cancel
-	useEffect(() => {
-		function handleClickOutside(event: MouseEvent) {
-			if (formRef.current && !formRef.current.contains(event.target as Node)) {
-				onCancel()
-			}
-		}
+	// // Handle click outside to cancel
+	// useEffect(() => {
+	// 	function handleClickOutside(event: MouseEvent) {
+	// 		if (formRef.current && !formRef.current.contains(event.target as Node)) {
+	// 			onCancel()
+	// 		}
+	// 	}
 
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [onCancel])
+	// 	document.addEventListener('mousedown', handleClickOutside)
+	// 	return () => {
+	// 		document.removeEventListener('mousedown', handleClickOutside)
+	// 	}
+	// }, [onCancel])
 
 	// Focus the input when the component mounts
 	useEffect(() => {
@@ -74,9 +74,9 @@ export function NewTaskCard({
 	}, [])
 
 	const handleSubmit = useCallback(
-		async (values: NewTaskFormData) => {
+		(values: NewTaskFormData) => {
 			if (values.title.trim()) {
-				await onSubmit({ title: values.title.trim(), position })
+				onSubmit({ title: values.title.trim(), position })
 			}
 		},
 		[onSubmit, position],
@@ -175,39 +175,38 @@ export function NewTaskCard({
 								</div>
 							</div>
 						)}
+
+						<div className={cn('flex items-center justify-end gap-2', isSubmitting && 'hidden')}>
+							<Button
+								type="button"
+								variant="ghost"
+								size="xs"
+								onClick={handleCancel}
+								disabled={isSubmitting}
+								className="px-3"
+							>
+								Cancel
+							</Button>
+							{hasError && onRetry ? (
+								<Button
+									type="button"
+									variant="outline"
+									size="xs"
+									onClick={onRetry}
+									disabled={isSubmitting}
+									className="px-3"
+								>
+									Retry
+								</Button>
+							) : (
+								<Button type="submit" size="xs" disabled={isSubmitting}>
+									Create Task
+								</Button>
+							)}
+						</div>
 					</div>
 				</Card>
 				{/* Action Buttons */}
-				<div
-					className={cn('flex items-center justify-end gap-2 pt-2', isSubmitting && 'opacity-0')}
-				>
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						onClick={handleCancel}
-						disabled={isSubmitting}
-						className="h-8 px-3"
-					>
-						Cancel
-					</Button>
-					{hasError && onRetry ? (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={onRetry}
-							disabled={isSubmitting}
-							className="h-8 px-3"
-						>
-							Retry
-						</Button>
-					) : (
-						<Button type="submit" size="sm" disabled={isSubmitting} className="h-8 px-3">
-							Create Task
-						</Button>
-					)}
-				</div>
 			</form>
 		</Form>
 	)

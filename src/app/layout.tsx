@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ReactQueryProvider } from '@/lib/react-query'
@@ -17,12 +18,14 @@ export default function RootLayout({
 	return (
 		<ThemeProvider defaultTheme="system" storageKey="ui-theme">
 			<ReactQueryProvider>
-				<html lang="en">
-					<body className={`antialiased`}>
-						{children}
-						<Toaster />
-					</body>
-				</html>
+				<NuqsAdapter>
+					<html lang="en">
+						<body className={`antialiased`}>
+							{children}
+							<Toaster />
+						</body>
+					</html>
+				</NuqsAdapter>
 			</ReactQueryProvider>
 		</ThemeProvider>
 	)

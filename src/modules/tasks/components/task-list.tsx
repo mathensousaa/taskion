@@ -39,7 +39,6 @@ export function TaskList({ status }: TaskListProps) {
 
 	const { mutate: reorderTaskBetween } = useReorderTaskBetween({
 		onMutate: async (reorderData) => {
-			// Cancel any outgoing refetches (so they don't overwrite our optimistic update)
 			await queryClient.cancelQueries({
 				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
 			})
@@ -184,12 +183,12 @@ export function TaskList({ status }: TaskListProps) {
 			emptyComponent={
 				<div className="space-y-4 rounded-lg">
 					<EmptyState />
-					<NewTasksList position="top" />
+					<NewTasksList key="empty-top" position="top" />
 				</div>
 			}
 			successComponent={
 				<div className="space-y-4 rounded-lg">
-					<NewTasksList position="top" />
+					<NewTasksList key="success-top" position="top" />
 					<DndContext
 						sensors={sensors}
 						collisionDetection={closestCenter}
@@ -224,7 +223,7 @@ export function TaskList({ status }: TaskListProps) {
 						</div>
 					)}
 
-					<NewTasksList position="bottom" />
+					<NewTasksList key="success-bottom" position="bottom" />
 				</div>
 			}
 		/>
