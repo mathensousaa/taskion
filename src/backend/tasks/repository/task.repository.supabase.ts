@@ -31,8 +31,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.select('*')
 			.is('deleted_at', null)
 			.order('order', { ascending: true })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 
 		if (error) throw error
 
@@ -46,8 +44,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.eq('user_id', userId)
 			.is('deleted_at', null)
 			.order('order', { ascending: true })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 
 		if (error) throw error
 
@@ -66,8 +62,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.eq('user_id', userId)
 			.is('deleted_at', null)
 			.order('order', { ascending: true })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 			.limit(limit + 1) // Get one extra to determine if there are more results
 
 		// Apply cursor if provided
@@ -115,8 +109,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.eq('user_id', userId)
 			.is('deleted_at', null)
 			.order('order', { ascending: true })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 
 		// Apply status_id filter if provided
 		if (filters.status_id) {
@@ -143,8 +135,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.eq('user_id', userId)
 			.is('deleted_at', null)
 			.order('order', { ascending: true })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 			.limit(limit + 1) // Get one extra to determine if there are more results
 
 		// Apply status_id filter if provided
@@ -241,8 +231,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.eq('user_id', userId)
 			.is('deleted_at', null)
 			.order('order', { ascending: true })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 
 		if (finalError) throw finalError
 
@@ -292,8 +280,6 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.eq('user_id', userId)
 			.not('deleted_at', 'is', null)
 			.order('deleted_at', { ascending: false })
-			.order('created_at', { ascending: true })
-			.order('id', { ascending: true })
 
 		if (error) throw error
 
