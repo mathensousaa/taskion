@@ -34,7 +34,22 @@ export const LexoRankUtils = {
 		return LexoRank.middle().toString()
 	},
 
-	generateOrderForPosition(tasks: Task[], position: number): string {
+	generateOrderForPosition(firstTask: Task | null, position: 'top' | 'bottom'): string {
+		if (!firstTask || !firstTask.order) {
+			return LexoRank.middle().toString()
+		}
+
+		if (position === 'top') {
+			// Insert at the beginning - generate previous rank
+			return LexoRank.parse(firstTask.order).genPrev().toString()
+		} else {
+			// For bottom position, this should use generateOrderForNewTask instead
+			// This method is specifically for top position
+			return LexoRank.parse(firstTask.order).genNext().toString()
+		}
+	},
+
+	generateOrderForPositionByIndex(tasks: Task[], position: number): string {
 		if (tasks.length === 0) {
 			return LexoRank.middle().toString()
 		}
@@ -75,6 +90,6 @@ export const LexoRankUtils = {
 		const filteredTasks = sortedTasks.filter((task) => task.id !== draggedTaskId)
 
 		// Calculate the new order based on the new position
-		return this.generateOrderForPosition(filteredTasks, newIndex)
+		return this.generateOrderForPositionByIndex(filteredTasks, newIndex)
 	},
 }

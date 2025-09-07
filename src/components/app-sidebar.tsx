@@ -224,15 +224,18 @@ function AddTaskDialog({
 	const { mutate: createTask, isPending } = useCreateTask()
 
 	const handleSubmit = async (data: { title: string }) => {
-		createTask(data, {
-			onSuccess: (newTask) => {
-				onOpenChange(false)
-				showTaskCreateSuccess(newTask.title)
+		createTask(
+			{ ...data, position: 'top' },
+			{
+				onSuccess: (newTask) => {
+					onOpenChange(false)
+					showTaskCreateSuccess(newTask.title)
+				},
+				onError: (error) => {
+					showTaskCreateError(error)
+				},
 			},
-			onError: (error) => {
-				showTaskCreateError(error)
-			},
-		})
+		)
 	}
 
 	const handleCancel = () => {

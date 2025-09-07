@@ -34,9 +34,17 @@ export class TaskService {
 
 		const statusId = input.status_id ?? (await this.taskStatusService.getDefaultStatusId())
 
-		// Get the last ordered task to determine the order
-		const lastTask = await this.taskRepository.getLastOrderedTaskByUserId(authenticatedUser.id)
-		const order = LexoRankUtils.generateOrderForNewTask(lastTask)
+		// Determine the order based on position
+		let order: string
+		if (input.position === 'bottom') {
+			// For bottom position, get the last task and generate next order
+			const lastTask = await this.taskRepository.getLastOrderedTaskByUserId(authenticatedUser.id)
+			order = LexoRankUtils.generateOrderForNewTask(lastTask)
+		} else {
+			// For top position (default), get the first task and generate previous order
+			const firstTask = await this.taskRepository.getFirstOrderedTaskByUserId(authenticatedUser.id)
+			order = LexoRankUtils.generateOrderForPosition(firstTask, 'top')
+		}
 
 		const dbInput = TaskDbInsertSchema.parse({
 			...taskData,
@@ -250,7 +258,7 @@ export class TaskService {
 		sortedTasks.splice(newPosition, 0, task)
 
 		// Generate new LexoRank order for the moved task
-		const newOrder = LexoRankUtils.generateOrderForPosition(sortedTasks, newPosition)
+		const newOrder = LexoRankUtils.generateOrderForPositionByIndex(sortedTasks, newPosition)
 
 		// Update the task's order directly
 		await this.taskRepository.update(taskId, { order: newOrder })

@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { useCreateTask } from '@/modules/tasks/services'
 import { showTaskCreateError, showTaskCreateSuccess } from '@/modules/tasks/utils'
 import { NewTaskCard } from './new-task-card'
@@ -15,21 +16,27 @@ interface PendingTask {
 	isSubmitting: boolean
 	hasError?: boolean
 	errorMessage?: string
+	position: 'top' | 'bottom'
 }
 
-export function NewTasksList() {
+interface NewTasksListProps {
+	position: 'top' | 'bottom'
+}
+
+export function NewTasksList({ position = 'top' }: NewTasksListProps) {
 	const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([])
 
 	const { mutate: createTask } = useCreateTask()
 
-	const handleAddTask = useCallback(() => {
+	const handleAddTask = useCallback((position: 'top' | 'bottom' = 'top') => {
 		const newPendingTask: PendingTask = {
 			id: `pending-${Date.now()}-${Math.random()}`,
-			data: { title: '' },
+			data: { title: '', position },
 			isSubmitting: false,
+			position,
 		}
 
-		setPendingTasks((prev) => [...prev, newPendingTask])
+		setPendingTasks((prev) => [newPendingTask, ...prev])
 	}, [])
 
 	const handleTaskSubmit = useCallback(
@@ -99,16 +106,17 @@ export function NewTasksList() {
 	}, [])
 
 	return (
-		<div className="space-y-3">
-			{/* Add Task Button. */}
-			<Button
-				variant="outline"
-				onClick={handleAddTask}
-				className="h-12 w-full border-2 border-dashed transition-all hover:border-solid"
-			>
-				<Plus className="mr-2 h-4 w-4" />
-				Add Task
-			</Button>
+		<div className={cn('flex flex-col gap-3', position === 'bottom' && 'flex-col-reverse')}>
+			<div className="flex gap-2">
+				<Button
+					variant="outline"
+					onClick={() => handleAddTask(position)}
+					className="h-12 flex-1 border-2 border-dashed transition-all hover:border-solid"
+				>
+					<Plus className="mr-2 h-4 w-4" />
+					Add Task
+				</Button>
+			</div>
 
 			{/* Pending Tasks. */}
 			{pendingTasks.map((pendingTask) => (
@@ -120,6 +128,7 @@ export function NewTasksList() {
 					isSubmitting={pendingTask.isSubmitting}
 					hasError={pendingTask.hasError}
 					errorMessage={pendingTask.errorMessage}
+					position={pendingTask.position}
 				/>
 			))}
 		</div>

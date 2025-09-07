@@ -43,19 +43,22 @@ export function QuickCreateTask({ className }: QuickCreateTaskProps) {
 
 	const handleCreate = useCallback(
 		(values: QuickCreateTaskFormData) => {
-			createTask(values, {
-				onSuccess: (newTask) => {
-					form.reset()
-					setIsExpanded(false)
-					showTaskCreateSuccess(newTask.title)
-					queryClient.invalidateQueries({
-						predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
-					})
+			createTask(
+				{ ...values, position: 'top' },
+				{
+					onSuccess: (newTask) => {
+						form.reset()
+						setIsExpanded(false)
+						showTaskCreateSuccess(newTask.title)
+						queryClient.invalidateQueries({
+							predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+						})
+					},
+					onError: (error) => {
+						showTaskCreateError(error)
+					},
 				},
-				onError: (error) => {
-					showTaskCreateError(error)
-				},
-			})
+			)
 		},
 		[createTask, form.reset],
 	)

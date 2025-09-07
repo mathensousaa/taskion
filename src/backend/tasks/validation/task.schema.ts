@@ -10,6 +10,7 @@ export const TaskCreationSchema = z.object({
 		}),
 	description: z.string().optional(),
 	status_id: z.uuid().optional(),
+	position: z.enum(['top', 'bottom']).optional().default('top'),
 })
 
 export type TaskCreationInput = z.infer<typeof TaskCreationSchema>
