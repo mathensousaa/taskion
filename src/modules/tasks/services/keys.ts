@@ -2,7 +2,7 @@ import { objectToQueryParams } from '@/lib/utils'
 
 export const keyListPaginatedTasks = (
 	limit: number,
-	cursor?: { order: number; created_at: string; id: string },
+	cursor?: { order: string; created_at: string; id: string },
 	status?: string,
 ) => ['tasks', 'paginated', ...objectToQueryParams({ limit, cursor, status })]
 

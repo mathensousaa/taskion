@@ -50,7 +50,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           id: string
-          order: number
+          order: string
           status_id: string
           title: string
           updated_at: string | null
@@ -61,7 +61,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
-          order?: number
+          order: string
           status_id: string
           title: string
           updated_at?: string | null
@@ -72,7 +72,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
-          order?: number
+          order?: string
           status_id?: string
           title?: string
           updated_at?: string | null

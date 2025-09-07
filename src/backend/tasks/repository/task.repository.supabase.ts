@@ -36,7 +36,7 @@ export class TaskRepositorySupabase implements ITaskRepository {
 
 		if (error) throw error
 
-		return data.map((task) => TaskSchema.parse(task))
+		return data
 	}
 
 	async findAllByUserId(userId: string): Promise<Task[]> {
@@ -89,10 +89,12 @@ export class TaskRepositorySupabase implements ITaskRepository {
 		let nextCursor: Cursor | undefined
 		if (hasMore && resultTasks.length > 0) {
 			const lastTask = resultTasks[resultTasks.length - 1]
-			nextCursor = {
-				order: lastTask.order,
-				created_at: lastTask.created_at,
-				id: lastTask.id,
+			if (lastTask.order) {
+				nextCursor = {
+					order: lastTask.order,
+					created_at: lastTask.created_at,
+					id: lastTask.id,
+				}
 			}
 		}
 
@@ -169,10 +171,12 @@ export class TaskRepositorySupabase implements ITaskRepository {
 		let nextCursor: Cursor | undefined
 		if (hasMore && resultTasks.length > 0) {
 			const lastTask = resultTasks[resultTasks.length - 1]
-			nextCursor = {
-				order: lastTask.order,
-				created_at: lastTask.created_at,
-				id: lastTask.id,
+			if (lastTask.order) {
+				nextCursor = {
+					order: lastTask.order,
+					created_at: lastTask.created_at,
+					id: lastTask.id,
+				}
 			}
 		}
 
@@ -226,67 +230,11 @@ export class TaskRepositorySupabase implements ITaskRepository {
 		if (error) throw error
 	}
 
-	async reorderTasks(userId: string, reorderData: TasksReorderInput): Promise<Task[]> {
-		// Start a transaction-like operation
-		const { data: existingTasks, error: fetchError } = await supabase
-			.from('tasks')
-			.select('id, order')
-			.eq('user_id', userId)
-			.is('deleted_at', null)
-			.order('order', { ascending: true })
+	async reorderTasks(userId: string, _reorderData: TasksReorderInput): Promise<Task[]> {
+		// This method is now used for the new reordering approach
+		// The actual reordering logic is handled in the service layer
+		// This method just returns the updated tasks in the correct order
 
-		if (fetchError) throw fetchError
-
-		// // Create a map of current orders
-		// const currentOrders = new Map(existingTasks.map((task) => [task.id, task.order]))
-
-		// Calculate new orders for all affected tasks
-		const updates: Array<{ id: string; order: number }> = []
-		const sortedReorderData = [...reorderData].sort((a, b) => a.newOrder - b.newOrder)
-
-		// First, update the explicitly reordered tasks
-		for (const reorderItem of sortedReorderData) {
-			updates.push({
-				id: reorderItem.taskId,
-				order: reorderItem.newOrder,
-			})
-		}
-
-		// Then, adjust other tasks to maintain proper ordering
-		let nextOrder = 0
-		for (const task of existingTasks) {
-			if (!reorderData.some((r) => r.taskId === task.id)) {
-				// Skip tasks that were explicitly reordered
-				while (reorderData.some((r) => r.newOrder === nextOrder)) {
-					nextOrder++
-				}
-				if (task.order !== nextOrder) {
-					updates.push({
-						id: task.id,
-						order: nextOrder,
-					})
-				}
-				nextOrder++
-			}
-		}
-
-		// const { data: updatedTasks, error: updateError } = await supabase
-		// 	.from('tasks')
-		// 	.update(
-		// 		updates.map((update) => ({
-		// 			order: update.order,
-		// 			updated_at: new Date().toISOString(),
-		// 		})),
-		// 	)
-		// 	.in(
-		// 		'id',
-		// 		updates.map((update) => update.id),
-		// 	)
-		// 	.select()
-
-		// if (updateError) throw updateError
-
-		// Return the updated tasks in the correct order
 		const { data: finalTasks, error: finalError } = await supabase
 			.from('tasks')
 			.select('*')
@@ -301,10 +249,10 @@ export class TaskRepositorySupabase implements ITaskRepository {
 		return finalTasks.map((task) => TaskSchema.parse(task))
 	}
 
-	async getMaxOrderByUserId(userId: string): Promise<number> {
+	async getLastOrderedTaskByUserId(userId: string): Promise<Task | null> {
 		const { data, error } = await supabase
 			.from('tasks')
-			.select('order')
+			.select('*')
 			.eq('user_id', userId)
 			.is('deleted_at', null)
 			.order('order', { ascending: false })
@@ -312,11 +260,11 @@ export class TaskRepositorySupabase implements ITaskRepository {
 			.single()
 
 		if (error) {
-			if (error.code === 'PGRST116') return 0
+			if (error.code === 'PGRST116') return null
 			throw error
 		}
 
-		return data.order
+		return TaskSchema.parse(data)
 	}
 
 	async findTrashByUserId(userId: string): Promise<Task[]> {

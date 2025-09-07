@@ -19,7 +19,6 @@ interface PendingTask {
 
 export function NewTasksList() {
 	const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([])
-	const [showAddButton, setShowAddButton] = useState(true)
 
 	const { mutate: createTask } = useCreateTask()
 
@@ -31,7 +30,6 @@ export function NewTasksList() {
 		}
 
 		setPendingTasks((prev) => [...prev, newPendingTask])
-		setShowAddButton(false)
 	}, [])
 
 	const handleTaskSubmit = useCallback(
@@ -65,7 +63,6 @@ export function NewTasksList() {
 					clearTimeout(timeoutId)
 					// Remove the pending task and add the real task.
 					setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
-					setShowAddButton(true)
 
 					showTaskCreateSuccess(newTask.title)
 				},
@@ -88,7 +85,6 @@ export function NewTasksList() {
 
 	const handleTaskCancel = useCallback((pendingTaskId: string) => {
 		setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
-		setShowAddButton(true)
 	}, [])
 
 	const handleTaskRetry = useCallback((pendingTaskId: string) => {
@@ -104,6 +100,16 @@ export function NewTasksList() {
 
 	return (
 		<div className="space-y-3">
+			{/* Add Task Button. */}
+			<Button
+				variant="outline"
+				onClick={handleAddTask}
+				className="h-12 w-full border-2 border-dashed transition-all hover:border-solid"
+			>
+				<Plus className="mr-2 h-4 w-4" />
+				Add Task
+			</Button>
+
 			{/* Pending Tasks. */}
 			{pendingTasks.map((pendingTask) => (
 				<NewTaskCard
@@ -116,18 +122,6 @@ export function NewTasksList() {
 					errorMessage={pendingTask.errorMessage}
 				/>
 			))}
-
-			{/* Add Task Button. */}
-			{showAddButton && (
-				<Button
-					variant="outline"
-					onClick={handleAddTask}
-					className="h-12 w-full border-2 border-dashed transition-all hover:border-solid"
-				>
-					<Plus className="mr-2 h-4 w-4" />
-					Add Task
-				</Button>
-			)}
 		</div>
 	)
 }

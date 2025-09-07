@@ -25,7 +25,7 @@ export interface ITaskRepository {
 	update(id: string, task: TaskUpdateInput): Promise<Task>
 	delete(id: string): Promise<void>
 	reorderTasks(userId: string, reorderData: TasksReorderInput): Promise<Task[]>
-	getMaxOrderByUserId(userId: string): Promise<number>
+	getLastOrderedTaskByUserId(userId: string): Promise<Task | null>
 	// Trash-related methods
 	findTrashByUserId(userId: string): Promise<Task[]>
 	findByIdIncludingDeleted(id: string): Promise<Task | null>
