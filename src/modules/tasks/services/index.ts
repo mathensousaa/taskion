@@ -45,7 +45,7 @@ export const useListTasks = (
 
 export const useListAllTasks = (
 	filters: { status?: string },
-	options?: UseQueryOptions<Task[], AxiosError<ErrorResponse>, Task[]>,
+	options?: Omit<UseQueryOptions<Task[], AxiosError<ErrorResponse>, Task[]>, 'queryKey'>,
 ): UseQueryResult<Task[], AxiosError<ErrorResponse>> =>
 	useQuery({
 		queryKey: keyListAllTasks(filters),
@@ -85,9 +85,16 @@ export const useCreateTask = (
 ) =>
 	useMutation({
 		mutationFn: (data: TaskCreationInput) => api.post(`/tasks`, data).then(parseResponseData<Task>),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+		onSuccess: (data, { position }) => {
+			// queryClient.invalidateQueries({
+			// 	predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			// })
+
+			queryClient.setQueryData(['tasks', '#all'], (oldData: Task[]) => {
+				if (position === 'top') {
+					return [data, ...oldData]
+				}
+				return [...oldData, data]
 			})
 		},
 		...options,
