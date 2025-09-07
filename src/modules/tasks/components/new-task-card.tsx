@@ -148,7 +148,7 @@ export function NewTaskCard({
 									Enhancing your task description...
 								</div>
 								<div className="space-y-1">
-									<Skeleton className="h-20 w-full" />
+									<Skeleton className="h-10 w-full bg-muted" />
 								</div>
 							</div>
 						)}

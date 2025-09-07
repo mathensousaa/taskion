@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import TaskStatusToggleButton from '@/modules/tasks/components/task-status-toggle-button'
 import { useEnhanceTask, useGetTaskById, useUpdateTask } from '@/modules/tasks/services'
@@ -69,6 +70,8 @@ function TaskDetailContent({ task }: { task: Task }) {
 	const [showFadeIn, setShowFadeIn] = useState(false)
 	const [previousTask, setPreviousTask] = useState<Task | null>(null)
 	const titleInputRef = useRef<HTMLInputElement>(null)
+
+	const isMobile = useIsMobile()
 
 	const { mutate: enhanceTask, isPending: isEnhancing } = useEnhanceTask(task.id, {
 		onSuccess: () => {
@@ -289,76 +292,78 @@ function TaskDetailContent({ task }: { task: Task }) {
 			</div>
 
 			{/* Right Panel - Metadata */}
-			<div className="w-80 space-y-6 bg-muted/30 p-6">
-				{/* Project */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Project</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Hash className="h-4 w-4 text-muted-foreground" />
-						<span className="text-foreground">My work</span>
-						<User className="h-3 w-3 text-pink-500" />
-						<span className="text-foreground">/</span>
-						<span className="text-foreground">Routines</span>
-						<Calendar className="h-3 w-3 text-blue-500" />
+			{!isMobile && (
+				<div className="w-80 space-y-6 bg-muted/30 p-6">
+					{/* Project */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Project</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Hash className="h-4 w-4 text-muted-foreground" />
+							<span className="text-foreground">My work</span>
+							<User className="h-3 w-3 text-pink-500" />
+							<span className="text-foreground">/</span>
+							<span className="text-foreground">Routines</span>
+							<Calendar className="h-3 w-3 text-blue-500" />
+						</div>
 					</div>
-				</div>
 
-				{/* Date */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Date</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Calendar className="h-4 w-4 text-green-500" />
-						<span className="text-foreground">Today 5 PM</span>
-						<Clock className="h-3 w-3 text-muted-foreground" />
+					{/* Date */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Date</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Calendar className="h-4 w-4 text-green-500" />
+							<span className="text-foreground">Today 5 PM</span>
+							<Clock className="h-3 w-3 text-muted-foreground" />
+						</div>
 					</div>
-				</div>
 
-				{/* Deadline */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Deadline</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Star className="h-4 w-4 text-orange-500" />
-						<Lock className="h-3 w-3 text-muted-foreground" />
+					{/* Deadline */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Deadline</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Star className="h-4 w-4 text-orange-500" />
+							<Lock className="h-3 w-3 text-muted-foreground" />
+						</div>
 					</div>
-				</div>
 
-				{/* Priority */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Priority</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Flag className="h-4 w-4 text-blue-500" />
-						<span className="text-foreground">P3</span>
+					{/* Priority */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Priority</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Flag className="h-4 w-4 text-blue-500" />
+							<span className="text-foreground">P3</span>
+						</div>
 					</div>
-				</div>
 
-				{/* Labels */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Labels</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Plus className="h-4 w-4 text-muted-foreground" />
+					{/* Labels */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Labels</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Plus className="h-4 w-4 text-muted-foreground" />
+						</div>
 					</div>
-				</div>
 
-				{/* Reminders */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Reminders</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Star className="h-4 w-4 text-orange-500" />
-						<span className="text-foreground">At task time</span>
-						<Clock className="h-3 w-3 text-muted-foreground" />
-						<Lock className="h-3 w-3 text-muted-foreground" />
+					{/* Reminders */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Reminders</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Star className="h-4 w-4 text-orange-500" />
+							<span className="text-foreground">At task time</span>
+							<Clock className="h-3 w-3 text-muted-foreground" />
+							<Lock className="h-3 w-3 text-muted-foreground" />
+						</div>
 					</div>
-				</div>
 
-				{/* Location */}
-				<div className="space-y-2">
-					<div className="font-medium text-muted-foreground text-xs">Location</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Star className="h-4 w-4 text-orange-500" />
-						<Lock className="h-3 w-3 text-muted-foreground" />
+					{/* Location */}
+					<div className="space-y-2">
+						<div className="font-medium text-muted-foreground text-xs">Location</div>
+						<div className="flex items-center gap-2 text-sm">
+							<Star className="h-4 w-4 text-orange-500" />
+							<Lock className="h-3 w-3 text-muted-foreground" />
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	)
 }
