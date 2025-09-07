@@ -184,12 +184,12 @@ export function TaskList({ status }: TaskListProps) {
 			emptyComponent={
 				<div className="space-y-4 rounded-lg">
 					<EmptyState />
-					<NewTasksList />
+					<NewTasksList position="top" />
 				</div>
 			}
 			successComponent={
 				<div className="space-y-4 rounded-lg">
-					<NewTasksList />
+					<NewTasksList position="top" />
 					<DndContext
 						sensors={sensors}
 						collisionDetection={closestCenter}
@@ -223,6 +223,8 @@ export function TaskList({ status }: TaskListProps) {
 							)}
 						</div>
 					)}
+
+					<NewTasksList position="bottom" />
 				</div>
 			}
 		/>

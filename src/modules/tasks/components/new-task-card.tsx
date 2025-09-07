@@ -32,6 +32,7 @@ interface NewTaskCardProps {
 	isSubmitting?: boolean
 	hasError?: boolean
 	errorMessage?: string
+	position?: 'top' | 'bottom'
 }
 
 export function NewTaskCard({
@@ -41,6 +42,7 @@ export function NewTaskCard({
 	isSubmitting = false,
 	hasError = false,
 	errorMessage,
+	position = 'top',
 }: NewTaskCardProps) {
 	const titleInputRef = useRef<HTMLInputElement>(null)
 	const formRef = useRef<HTMLFormElement>(null)
@@ -74,10 +76,10 @@ export function NewTaskCard({
 	const handleSubmit = useCallback(
 		async (values: NewTaskFormData) => {
 			if (values.title.trim()) {
-				await onSubmit({ title: values.title.trim() })
+				await onSubmit({ title: values.title.trim(), position })
 			}
 		},
-		[onSubmit],
+		[onSubmit, position],
 	)
 
 	const handleKeyDown = useCallback(
@@ -101,6 +103,12 @@ export function NewTaskCard({
 		<Form {...form}>
 			<form ref={formRef} onSubmit={form.handleSubmit(handleSubmit)} className="">
 				<Card className="group relative rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md">
+					{/* Position indicator */}
+					<div className="absolute top-2 right-2">
+						<span className="inline-flex items-center rounded-full bg-muted px-2 py-1 font-medium text-muted-foreground text-xs">
+							{position === 'top' ? '↑ Top' : '↓ Bottom'}
+						</span>
+					</div>
 					<div className="flex items-center gap-2">
 						<TaskStatusToggleButton taskId="" taskStatusId={undefined} />
 						<div className="flex-1">

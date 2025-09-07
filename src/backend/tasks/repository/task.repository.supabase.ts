@@ -267,6 +267,24 @@ export class TaskRepositorySupabase implements ITaskRepository {
 		return TaskSchema.parse(data)
 	}
 
+	async getFirstOrderedTaskByUserId(userId: string): Promise<Task | null> {
+		const { data, error } = await supabase
+			.from('tasks')
+			.select('*')
+			.eq('user_id', userId)
+			.is('deleted_at', null)
+			.order('order', { ascending: true })
+			.limit(1)
+			.single()
+
+		if (error) {
+			if (error.code === 'PGRST116') return null
+			throw error
+		}
+
+		return TaskSchema.parse(data)
+	}
+
 	async findTrashByUserId(userId: string): Promise<Task[]> {
 		const { data, error } = await supabase
 			.from('tasks')
