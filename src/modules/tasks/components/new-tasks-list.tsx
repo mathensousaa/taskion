@@ -2,7 +2,6 @@
 
 import { Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { toast } from 'sonner'
 import type { TaskCreationInput } from '@/backend/tasks/validation/task.schema'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -25,10 +24,15 @@ interface NewTasksListProps {
 
 export function NewTasksList({ position = 'top' }: NewTasksListProps) {
 	const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([])
-
 	const { mutate: createTask } = useCreateTask()
 
-	const handleAddTask = useCallback((position: 'top' | 'bottom' = 'top') => {
+	const handleAddTask = useCallback(() => {
+		const isAllTasksSubmitting = pendingTasks.every((task) => task.isSubmitting)
+
+		if (!isAllTasksSubmitting) {
+			return
+		}
+
 		const newPendingTask: PendingTask = {
 			id: `pending-${Date.now()}-${Math.random()}`,
 			data: { title: '', position },
@@ -36,45 +40,30 @@ export function NewTasksList({ position = 'top' }: NewTasksListProps) {
 			position,
 		}
 
-		setPendingTasks((prev) => [newPendingTask, ...prev])
-	}, [])
+		setPendingTasks((prev) => {
+			const newTasks = [newPendingTask, ...prev]
+
+			return newTasks
+		})
+	}, [position, pendingTasks])
 
 	const handleTaskSubmit = useCallback(
-		async (pendingTaskId: string, data: TaskCreationInput) => {
+		(pendingTaskId: string, data: TaskCreationInput) => {
 			// Mark the task as submitting.
 			setPendingTasks((prev) =>
 				prev.map((task) => (task.id === pendingTaskId ? { ...task, isSubmitting: true } : task)),
 			)
 
-			// Set a timeout to prevent infinite loading state
-			const timeoutId = setTimeout(() => {
-				setPendingTasks((prev) =>
-					prev.map((task) =>
-						task.id === pendingTaskId
-							? {
-									...task,
-									isSubmitting: false,
-									hasError: true,
-									errorMessage: 'Task creation timeout',
-								}
-							: task,
-					),
-				)
-				toast.error('Task creation timeout', {
-					description: 'The task creation is taking longer than expected. Please try again.',
-				})
-			}, 30000) // 30 second timeout
-
 			createTask(data, {
 				onSuccess: (newTask) => {
-					clearTimeout(timeoutId)
-					// Remove the pending task and add the real task.
-					setPendingTasks((prev) => prev.filter((task) => task.id !== pendingTaskId))
+					setPendingTasks((prev) => {
+						const filtered = prev.filter((task) => task.id !== pendingTaskId)
+						return filtered
+					})
 
 					showTaskCreateSuccess(newTask.title)
 				},
 				onError: (error) => {
-					clearTimeout(timeoutId)
 					// Set error state to allow retry.
 					setPendingTasks((prev) =>
 						prev.map((task) =>
@@ -110,7 +99,7 @@ export function NewTasksList({ position = 'top' }: NewTasksListProps) {
 			<div className="flex gap-2">
 				<Button
 					variant="outline"
-					onClick={() => handleAddTask(position)}
+					onClick={handleAddTask}
 					className="h-12 flex-1 border-2 border-dashed transition-all hover:border-solid"
 				>
 					<Plus className="mr-2 h-4 w-4" />
@@ -118,7 +107,6 @@ export function NewTasksList({ position = 'top' }: NewTasksListProps) {
 				</Button>
 			</div>
 
-			{/* Pending Tasks. */}
 			{pendingTasks.map((pendingTask) => (
 				<NewTaskCard
 					key={pendingTask.id}

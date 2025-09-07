@@ -18,6 +18,7 @@ import { api } from '@/lib/axios'
 import { queryClient } from '@/lib/react-query'
 import { queryKeyToUrl } from '@/lib/react-query/helpers'
 import { parseResponseData } from '@/lib/utils'
+import { useTaskFilters } from '@/modules/tasks/hooks/use-task-filters'
 import {
 	keyGetTaskById,
 	keyListAllTasks,
@@ -81,62 +82,72 @@ export const useGetTaskById = (
 	})
 
 export const useCreateTask = (
+	pendingTaskId?: string,
 	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, TaskCreationInput>,
-) =>
-	useMutation({
-		mutationFn: (data: TaskCreationInput) => api.post(`/tasks`, data).then(parseResponseData<Task>),
-		onSuccess: (data, { position }) => {
-			// queryClient.invalidateQueries({
-			// 	predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
-			// })
+) => {
+	const { status } = useTaskFilters()
 
-			queryClient.setQueryData(['tasks', '#all'], (oldData: Task[]) => {
-				if (position === 'top') {
+	return useMutation({
+		mutationKey: ['createTask', pendingTaskId],
+		mutationFn: (data: TaskCreationInput) => api.post(`/tasks`, data).then(parseResponseData<Task>),
+		onSuccess: (data, variables) => {
+			// Update the query cache
+			queryClient.setQueryData(keyListAllTasks({ status }), (oldData: Task[]) => {
+				if (variables.position === 'top') {
 					return [data, ...oldData]
 				}
 				return [...oldData, data]
 			})
+
+			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
+
+			// Call the external onSuccess if provided
+			options?.onSuccess?.(data, variables, undefined)
 		},
 		...options,
 	})
+}
 
 export const useUpdateTask = (
 	id: string,
 	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, TaskUpdateInput>,
-) =>
-	useMutation({
+) => {
+	const { status } = useTaskFilters()
+
+	return useMutation({
 		mutationFn: (data: TaskUpdateInput) =>
 			api.put(`/tasks/${id}`, data).then(parseResponseData<Task>),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+		onSuccess: (data) => {
+			queryClient.setQueryData(keyListAllTasks({ status }), (oldData: Task[]) => {
+				return oldData.map((task) => (task.id === id ? { ...task, ...data } : task))
 			})
-
-			queryClient.invalidateQueries({ queryKey: keyGetTaskById(id) })
+			queryClient.setQueryData(keyGetTaskById(id), data)
 			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
 		},
 		...options,
 	})
+}
 
 export const useDeleteTask = (
 	id: string,
 	options?: UseMutationOptions<void, AxiosError<ErrorResponse>, void>,
-) =>
-	useMutation({
+) => {
+	const { status } = useTaskFilters()
+
+	return useMutation({
 		mutationFn: () => api.delete(`/tasks/${id}`).then(parseResponseData<void>),
 		onSuccess: () => {
-			queryClient.invalidateQueries({
+			queryClient.setQueryData(keyListAllTasks({ status }), (oldData: Task[]) => {
+				return oldData.filter((task) => task.id !== id)
+			})
+			queryClient.removeQueries({
 				queryKey: keyGetTaskById(id),
 			})
-
-			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
-			})
-
 			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
 		},
 		...options,
 	})
+}
 
 export const useReorderTasks = (
 	options?: UseMutationOptions<void, AxiosError<ErrorResponse>, TasksReorderInput>,
@@ -163,8 +174,10 @@ export const useReorderTaskBetween = (
 export const useToggleTaskStatus = (
 	id: string,
 	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, void>,
-) =>
-	useMutation({
+) => {
+	const { status } = useTaskFilters()
+
+	return useMutation({
 		mutationFn: () => api.patch(`/tasks/${id}/status/toggle`).then(parseResponseData<Task>),
 		onSuccess: (data) => {
 			queryClient.setQueryData(keyGetTaskById(id), (oldData: Task) => {
@@ -173,13 +186,15 @@ export const useToggleTaskStatus = (
 					status_id: data?.status_id || oldData.status_id,
 				}
 			})
-
-			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			queryClient.setQueryData(keyListAllTasks({ status }), (oldData: Task[]) => {
+				return oldData.map((task) =>
+					task.id === id ? { ...task, status_id: data?.status_id || task.status_id } : task,
+				)
 			})
 		},
 		...options,
 	})
+}
 
 export const useUpdateTaskStatusBySlug = (
 	id: string,
@@ -200,18 +215,18 @@ export const useUpdateTaskStatusBySlug = (
 export const useEnhanceTask = (
 	id: string,
 	options?: UseMutationOptions<Task, AxiosError<ErrorResponse>, void>,
-) =>
-	useMutation({
+) => {
+	const { status } = useTaskFilters()
+
+	return useMutation({
 		mutationFn: () => api.post(`/tasks/${id}/enhance`).then(parseResponseData<Task>),
 		onSuccess: (data) => {
 			queryClient.setQueryData(keyGetTaskById(id), data)
-			queryClient.invalidateQueries({
-				queryKey: keyGetTaskById(id),
-			})
-			queryClient.invalidateQueries({
-				predicate: (query) => query.queryKey[0] === 'tasks' && query.queryKey[1] === '#all',
+			queryClient.setQueryData(keyListAllTasks({ status }), (oldData: Task[]) => {
+				return oldData.map((task) => (task.id === id ? { ...task, ...data } : task))
 			})
 			queryClient.invalidateQueries({ queryKey: ['tasks', 'recent'] })
 		},
 		...options,
 	})
+}
